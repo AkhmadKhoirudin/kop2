@@ -224,56 +224,35 @@ $foto_ada = $foto && file_exists($foto_path);
     <!-- Konten Utama -->
     <div class="flex flex-col flex-1 overflow-hidden">
       <!-- Header -->
-<header class="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-200 shadow-sm">
-  <!-- Tombol Sidebar (Mobile) -->
-  <button class="md:hidden text-gray-500 hover:text-gray-700 focus:outline-none" onclick="toggleSidebar()">
-    <i class="fas fa-bars fa-lg"></i>
-  </button>
+      <header class="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-200">
+        <button class="md:hidden text-gray-500 focus:outline-none" onclick="toggleSidebar()">
+          <i class="fas fa-bars"></i>
+        </button>
 
-  <!-- Menu Kanan -->
-  <div class="flex items-center ml-auto space-x-4">
-    <!-- Notifikasi -->
-    <div class="relative">
-      <button onclick="toggleDropdown()" class="relative text-gray-500 hover:text-gray-700 focus:outline-none">
-        <i class="fas fa-bell fa-lg"></i>
-        <span id="badge-count"
-              class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center shadow hidden">
-          3
-        </span>
-      </button>
-
-      <!-- Dropdown Notifikasi -->
-      <div id="popup-notif"
-           class="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg hidden z-50 transition-all duration-200">
-        <div class="p-4">
-          <div class="flex justify-between items-center mb-3">
-            <h3 class="text-sm font-semibold text-gray-800">Notifikasi</h3>
-            <button onclick="tutupDropdown()" class="text-gray-400 hover:text-gray-600 text-sm">
-              <i class="fas fa-times"></i>
+        <!-- Menu Kanan -->
+        <div class="flex items-center space-x-4 ml-auto">
+          <!-- Notifikasi Dropdown -->
+          <div class="relative">
+            <button onclick="toggleDropdown()" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+              <i class="fas fa-bell"></i>
             </button>
-          </div>
-
-          <ul id="list-notifikasi" class="space-y-2 max-h-60 overflow-y-auto text-sm text-gray-700">
-            <!-- Notifikasi akan diisi lewat JS -->
-          </ul>
-
-          <div class="flex justify-between mt-3">
-            <button id="baca-semua"
-                    class="text-blue-600 hover:underline text-xs font-medium">
-              Baca Semua
-            </button>
-            <button id="lihat-semua-pesan"
-                    onclick="tampilkanLaporan('./pesan/all.php')"
-                    class="text-blue-600 hover:underline text-xs font-medium">
-              Lihat Semua
-            </button>
+            <span id="badge-count" class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1">0</span>
+            <div id="popup-notif" class="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded shadow-lg hidden z-50">
+              <div class="p-4">
+                <div class="flex justify-between items-center mb-2">
+                  <h3 class="text-sm font-semibold text-gray-800">Notifikasi</h3>
+                  <button onclick="tutupDropdown()" class="text-gray-400 hover:text-gray-600 text-xs">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+                <ul id="list-notifikasi" class="space-y-2 text-sm text-gray-700"></ul>
+                <button id="baca-semua" class="text-blue-500 hover:underline text-xs">Baca Semua</button>
+ 
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-</header>
-
+      </header>
 
       <!-- Konten -->
       <main class="flex-1 overflow-hidden bg-gray-50">
@@ -287,7 +266,7 @@ $foto_ada = $foto && file_exists($foto_path);
 <script>
 
   document.addEventListener('DOMContentLoaded', () => {
-    fetchNotifikasi(); // Memuat notifikasi awal saat DOM dimuat
+    fetchNotifikasi();
 
     // Event: Tombol "Baca Semua"
     document.getElementById('baca-semua').addEventListener('click', () => {
@@ -301,16 +280,15 @@ $foto_ada = $foto && file_exists($foto_path);
       .then(response => response.json())
       .then(data => {
         if (data.success) {
-          fetchNotifikasi(); // Refresh daftar notifikasi setelah "Baca Semua"
+          fetchNotifikasi(); // Refresh list notifikasi
         } else {
           alert('Gagal memperbarui notifikasi');
         }
-      })
-      .catch(err => console.error("Error saat menandai semua notifikasi:", err));
+      });
     });
   });
 
-  let isNotifLoading = false; // Flag untuk mencegah multiple fetch
+  let isNotifLoading = false;
 
   function tampilkanLaporan(url) {
     document.getElementById("konten-frame").src = url;
@@ -322,48 +300,41 @@ $foto_ada = $foto && file_exists($foto_path);
       minimumFractionDigits: 0
     }).format(angka);
   }
+const badge = document.getElementById('badge-count');
+if (badge) badge.textContent = belum.length;
 
-  const badge = document.getElementById('badge-count'); // Dapatkan elemen badge notifikasi
+  function toggleDropdown() {
+    const dropdown = document.getElementById("popup-notif");
 
-  // Fungsi untuk mengambil dan menampilkan notifikasi
-  function fetchNotifikasi() {
-    if (isNotifLoading) return; // Jangan fetch jika sedang loading
+    const isHidden = dropdown.classList.contains("hidden");
+    document.querySelectorAll(".absolute").forEach(el => el.classList.add("hidden"));
+    if (isHidden) dropdown.classList.remove("hidden");
+    else return;
+
+    if (isNotifLoading) return;
     isNotifLoading = true;
 
     fetch("./pesan/api_pesan.php")
       .then(res => res.json())
       .then(result => {
         const list = document.getElementById("list-notifikasi");
-        list.innerHTML = ""; // Bersihkan daftar notifikasi
-
-        let unreadCount = 0; // Inisialisasi hitungan notifikasi belum dibaca
+        list.innerHTML = "";
 
         if (result.status === "success" && result.data.length > 0) {
-          // Hitung notifikasi yang belum dibaca
-          unreadCount = result.data.filter(item => item.status === 'belum').length;
-          if (badge) {
-            badge.textContent = unreadCount; // Perbarui badge
-            if (unreadCount > 0) {
-              badge.classList.remove("hidden"); // Tampilkan badge jika ada notifikasi
-            } else {
-              badge.classList.add("hidden"); // Sembunyikan badge jika tidak ada notifikasi
-            }
-          }
-
-          // Urutkan: 'belum' di atas, lalu ambil 5 teratas
+          // Urutkan: 'belum' di atas, baru ambil 5 teratas
           const sorted = result.data.sort((a, b) => {
             if (a.status === 'belum' && b.status !== 'belum') return -1;
             if (a.status !== 'belum' && b.status === 'belum') return 1;
             return 0;
           });
 
-          const recent = sorted.slice(0, 5); // Ambil 5 notifikasi terbaru/belum dibaca
+          const recent = sorted.slice(0, 5);
 
           recent.forEach(item => {
             let teks = "";
             let id_unik = null;
 
-            // Coba ambil ID valid (angka) dari berbagai properti
+            // Coba ambil ID valid (angka)
             if (!isNaN(parseInt(item.id))) {
               id_unik = parseInt(item.id);
             } else if (!isNaN(parseInt(item.id_angsuran))) {
@@ -376,7 +347,7 @@ $foto_ada = $foto && file_exists($foto_path);
 
             const isValidId = Number.isInteger(id_unik);
 
-            // Buat teks notifikasi berdasarkan versi
+            // Buat teks notifikasi
             switch (item.versi) {
               case 1:
                 teks = `Simpanan: Rp ${formatRupiah(item.jumlah)} (Anggota ID ${item.id_anggota})`;
@@ -394,17 +365,15 @@ $foto_ada = $foto && file_exists($foto_path);
                 teks = "Notifikasi tidak diketahui.";
             }
 
-            // Tentukan gaya CSS berdasarkan status notifikasi
             const css = item.status === 'belum' ? "font-bold text-indigo-700" : "text-gray-600";
 
-            // Tampilkan item notifikasi
+            // Tampilkan item
             if (isValidId) {
               list.innerHTML += `
                 <li class="border-b pb-1 text-sm ${css}" style="cursor:pointer"
                     onclick="updateStatusPesan(${id_unik})" title="Klik untuk tandai sudah dibaca">
                   ${item.tanggal} - ${teks}
                 </li>`;
-                
             } else {
               list.innerHTML += `
                 <li class="border-b pb-1 text-sm text-gray-400 cursor-not-allowed" title="ID tidak valid, tidak bisa diproses">
@@ -415,42 +384,16 @@ $foto_ada = $foto && file_exists($foto_path);
 
         } else {
           list.innerHTML = "<li class='text-sm text-gray-500'>Tidak ada notifikasi baru.</li>";
-          if (badge) {
-            badge.textContent = 0; // Set badge ke 0 jika tidak ada notifikasi
-            badge.classList.add("hidden"); // Sembunyikan badge
-          }
         }
       })
       .catch(err => {
         document.getElementById("list-notifikasi").innerHTML =
           `<li class='text-sm text-red-500'>Gagal memuat notifikasi.</li>`;
         console.error("Fetch error:", err);
-        if (badge) {
-          badge.textContent = 0; // Set badge ke 0 jika terjadi error
-          badge.classList.add("hidden"); // Sembunyikan badge
-        }
       })
       .finally(() => {
         isNotifLoading = false;
       });
-  }
-
-  // Fungsi untuk menutup semua dropdown yang terbuka
-  function closeAllDropdowns() {
-    document.getElementById("popup-notif").classList.add("hidden");
-    document.getElementById("user-menu").classList.add("hidden");
-  }
-
-  // Fungsi untuk mengaktifkan/menonaktifkan dropdown notifikasi
-  function toggleDropdown() {
-    const dropdown = document.getElementById("popup-notif");
-    if (dropdown.classList.contains("hidden")) {
-      closeAllDropdowns(); // Tutup dropdown lain sebelum membuka ini
-      dropdown.classList.remove("hidden");
-      fetchNotifikasi(); // Muat ulang notifikasi saat dropdown dibuka
-    } else {
-      dropdown.classList.add("hidden"); // Tutup jika sudah terbuka
-    }
   }
 
   function updateStatusPesan(id) {
@@ -462,62 +405,40 @@ $foto_ada = $foto && file_exists($foto_path);
       .then(res => res.json())
       .then(res => {
         if (res.status === 'success') {
-          fetchNotifikasi(); // Muat ulang notifikasi setelah pembaruan status
+          toggleDropdown(); // reload daftar
         }
       })
-      .catch(err => console.error("Update status pesan gagal:", err));
-      tutupDropdown() 
+      .catch(err => console.error("Update gagal:", err));
   }
 
   function tutupDropdown() {
-    document.getElementById("popup-notif").classList.add("hidden");
+    const dropdown = document.getElementById("popup-notif");
+    if (dropdown) dropdown.classList.add("hidden");
   }
 
-  // Event listener untuk menutup dropdown saat mengklik di luar
   document.addEventListener("click", function (event) {
-    const notificationDropdown = document.getElementById("popup-notif");
-    const userMenuDropdown = document.getElementById("user-menu");
-    const notificationButton = event.target.closest("button[onclick='toggleDropdown()']");
-    const userMenuButton = event.target.closest("button[onclick='toggleUserMenu()']");
-
-    if (!notificationDropdown.contains(event.target) && !notificationButton &&
-        !userMenuDropdown.contains(event.target) && !userMenuButton) {
-      closeAllDropdowns();
+    const dropdown = document.getElementById("popup-notif");
+    const button = event.target.closest("button[onclick='toggleDropdown()']");
+    if (!dropdown.contains(event.target) && !button) {
+      dropdown.classList.add("hidden");
     }
   });
 </script>
 
 <script>
-  // Fungsi untuk mengaktifkan/menonaktifkan menu pengguna
   function toggleUserMenu() {
     const menu = document.getElementById("user-menu");
-    if (menu.classList.contains("hidden")) {
-      closeAllDropdowns(); // Tutup dropdown lain sebelum membuka ini
-      menu.classList.remove("hidden");
-    } else {
-      menu.classList.add("hidden"); // Tutup jika sudah terbuka
-    }
+    menu.classList.toggle("hidden");
   }
 
-  // Event listener untuk menutup semua dropdown saat mengklik di luar elemen dropdown atau tombolnya
+  // Tutup dropdown jika klik di luar elemen
   document.addEventListener("click", function (event) {
-    const notificationDropdown = document.getElementById("popup-notif");
-    const userMenuDropdown = document.getElementById("user-menu");
-    const notificationButton = document.querySelector("button[onclick='toggleDropdown()']");
-    const userMenuButton = document.querySelector("button[onclick='toggleUserMenu()']");
+    const container = document.getElementById("dropdown-container");
+    const menu = document.getElementById("user-menu");
 
-    // Pastikan tombol-tombolnya ditemukan sebelum memeriksa contains
-    const clickedOnNotificationButton = notificationButton && notificationButton.contains(event.target);
-    const clickedOnUserMenuButton = userMenuButton && userMenuButton.contains(event.target);
-
-    // Periksa apakah klik terjadi di luar dropdown notifikasi DAN bukan pada tombol notifikasi
-    const clickedOutsideNotifArea = !notificationDropdown.contains(event.target) && !clickedOnNotificationButton;
-    // Periksa apakah klik terjadi di luar menu pengguna DAN bukan pada tombol menu pengguna
-    const clickedOutsideUserMenuArea = !userMenuDropdown.contains(event.target) && !clickedOnUserMenuButton;
-
-    // Jika klik terjadi di luar kedua dropdown dan tombolnya, tutup semua dropdown
-    if (clickedOutsideNotifArea && clickedOutsideUserMenuArea) {
-      closeAllDropdowns();
+    // Jika elemen yang diklik bukan bagian dari dropdown
+    if (!container.contains(event.target)) {
+      menu.classList.add("hidden");
     }
   });
 </script>
