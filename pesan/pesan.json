@@ -24,6 +24,42 @@
         "tanggal": "2025-07-13",
         "jumlah": 900000,
         "id_prodak": "19",
+        "status": "baca"
+    },
+    {
+        "versi": 2,
+        "id_pinjaman": 13441,
+        "id_anggota": "9",
+        "id_produk": "26",
+        "tanggal": "2025-08-05",
+        "jumlah": 1000000,
+        "tenor": 19,
+        "status": "baca"
+    },
+    {
+        "versi": 1,
+        "id": 1,
+        "id_anggota": "9",
+        "tanggal": "2025-08-05",
+        "jumlah": 1000000,
+        "id_prodak": "23",
+        "status": "baca"
+    },
+    {
+        "versi": 3,
+        "id_penarikan": 14219,
+        "id_anggota": "9",
+        "id_produk": "23",
+        "tanggal": "2025-08-05",
+        "jumlah": 100000,
+        "status": "baca"
+    },
+    {
+        "versi": 4,
+        "id_angsuran": 0,
+        "id_pinjaman": 13441,
+        "tanggal": "2025-08-05",
+        "jumlah": 52632,
         "status": "belum"
     }
 ]
