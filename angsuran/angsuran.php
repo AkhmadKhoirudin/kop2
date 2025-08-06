@@ -31,30 +31,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 mysqli_query($conn, "UPDATE pinjaman SET status = 'lunas' WHERE id_pinjaman = $id_pinjaman");
             }
 
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // Simpan juga ke pesan.json/////////////////////////////////////////////////////////////////////////////////////////
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            $pesan_json_file = '../pesan/pesan.json';
-
-            $pesan_data = file_exists($pesan_json_file)
-                ? json_decode(file_get_contents($pesan_json_file), true)
-                : [];
-
-            if (!is_array($pesan_data)) $pesan_data = [];
-
-            $pesan_data[] = [
-                "versi" => 4,
+            // Tambahkan notifikasi menggunakan fungsi terpusat
+            include_once __DIR__ . '/../pesan/fungsi_pesan.php';
+            $notifikasi_baru = [
+                "versi"       => 4,
                 "id_angsuran" => mysqli_insert_id($conn),
                 "id_pinjaman" => $id_pinjaman,
-                "tanggal" => $tanggal,
-                "jumlah" => (int)$jumlah,
-                "status" => "belum"
-
+                "tanggal"     => $tanggal,
+                "jumlah"      => (int)$jumlah,
+                "status"      => "belum"
             ];
+            
+            tambahNotifikasi($notifikasi_baru);
 
-            // Tulis kembali ke file pesan.json
-            file_put_contents($pesan_json_file, json_encode($pesan_data, JSON_PRETTY_PRINT));
-              header("Location: list.php?pesan=sukses");
+            header("Location: list.php?pesan=sukses");
+            exit(); // Pastikan script berhenti setelah redirect
               
             $pesan = "Angsuran berhasil disimpan.";
         } else {

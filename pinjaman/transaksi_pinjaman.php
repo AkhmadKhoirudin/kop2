@@ -26,31 +26,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   VALUES ('$id_anggota', '$id_produk', '$tanggal', '$jumlah', '$tenor', 'pengajuan')";
         $pesan = mysqli_query($conn, $query) ? "Berhasil disimpan." : "Gagal menyimpan.";
 
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Simpan juga ke pesan.json/////////////////////////////////////////////////////////////////////////////////////////
-        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            $pesan_json_file = '../pesan/pesan.json';
+        // Tambahkan notifikasi menggunakan fungsi terpusat
+        include_once __DIR__ . '/../pesan/fungsi_pesan.php';
+        $notifikasi_baru = [
+            "versi"       => 2,
+            "id_pinjaman" => mysqli_insert_id($conn),
+            "id_anggota"  => $id_anggota,
+            "id_produk"   => $id_produk,
+            "tanggal"     => $tanggal,
+            "jumlah"      => (int)$jumlah,
+            "tenor"       => $tenor,
+            "status"      => "belum"
+        ];
+        
+        tambahNotifikasi($notifikasi_baru);
 
-            $pesan_data = file_exists($pesan_json_file)
-                ? json_decode(file_get_contents($pesan_json_file), true)
-                : [];
-
-            if (!is_array($pesan_data)) $pesan_data = [];
-
-            $pesan_data[] = [
-                "versi" => 2,
-                "id_pinjaman" => mysqli_insert_id($conn),
-                "id_anggota"=>$id_anggota,
-                "id_produk" => $id_produk,
-                "tanggal" => $tanggal,
-                "jumlah" => (int)$jumlah,
-                "tenor" => $tenor,
-                "status" => "belum"
-            ];
-
-            // Tulis kembali ke file pesan.json
-            file_put_contents($pesan_json_file, json_encode($pesan_data, JSON_PRETTY_PRINT));
-            header("Location: list.php?pesan=sukses");
+        header("Location: list.php?pesan=sukses");
+        exit(); // Pastikan script berhenti setelah redirect
         
     } else {
         $pesan = "Jumlah dan tenor harus lebih dari 0.";

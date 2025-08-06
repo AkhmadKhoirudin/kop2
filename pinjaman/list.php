@@ -106,6 +106,7 @@ $result = mysqli_query($conn, $query);
                             <td class="border px-4 py-2 capitalize"><?= $row['status']; ?></td>
                             <td class="border px-4 py-2">
                                 <button onclick='openEditPopup(<?= json_encode($row) ?>)' class="text-yellow-600 hover:underline">Edit</button>
+                                <a href="../laporan/slip.php?jenis=pinjaman&id=<?= $row['id_pinjaman'] ?>" target="_blank" class="text-blue-500 hover:underline ml-2">Print</a>
                             </td>
                         </tr>
                     <?php endwhile; ?>

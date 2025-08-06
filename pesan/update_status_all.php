@@ -3,48 +3,64 @@ session_start();
 
 header('Content-Type: application/json');
 
-// Cek apakah sudah login
-$anggota = $_SESSION['id'] ?? null;
-if (!$anggota) {
-    echo json_encode(['success' => false, 'msg' => 'Belum login']);
+// Pastikan pengguna sudah login
+if (!isset($_SESSION['id_anggota'])) {
+    http_response_code(403);
+    echo json_encode(['status' => 'error', 'message' => 'Akses ditolak. Silakan login terlebih dahulu.']);
     exit;
 }
 
-// Path file JSON
-$json_file = __DIR__ . '/../pesan/pesan.json';
+$id_anggota_login = $_SESSION['id_anggota'];
+$json_file = __DIR__ . '/pesan.json';
 
-// Cek apakah file ada
 if (!file_exists($json_file)) {
-    echo json_encode(['success' => false, 'msg' => 'File tidak ditemukan']);
+    http_response_code(404);
+    echo json_encode(['status' => 'error', 'message' => 'File notifikasi tidak ditemukan.']);
     exit;
 }
 
-// Ambil dan decode data JSON
-$json_content = file_get_contents($json_file);
-$data = json_decode($json_content, true);
-
-// Validasi format
-if (!is_array($data)) {
-    echo json_encode(['success' => false, 'msg' => 'Format JSON tidak valid']);
+$file_handle = fopen($json_file, 'r+');
+if (!$file_handle) {
+    http_response_code(500);
+    echo json_encode(['status' => 'error', 'message' => 'Gagal membuka file notifikasi.']);
     exit;
 }
 
-// Update status
-$updated = false;
-foreach ($data as &$item) {
-    if (($item['status'] ?? '') === 'belum' && ($item['id_anggota'] ?? null) == $anggota) {
-        $item['status'] = 'baca';
-        $updated = true;
+// Lock file untuk mencegah race condition
+if (flock($file_handle, LOCK_EX)) {
+    $json_content = fread($file_handle, filesize($json_file) ?: 1);
+    $data = json_decode($json_content, true);
+    $updated = false;
+
+    if (is_array($data)) {
+        foreach ($data as &$item) {
+            // Perbarui status jika notifikasi milik pengguna dan belum dibaca
+            if (isset($item['id_anggota']) && $item['id_anggota'] == $id_anggota_login && $item['status'] === 'belum') {
+                $item['status'] = 'baca';
+                $updated = true;
+            }
+        }
+
+        if ($updated) {
+            // Kembali ke awal file untuk menulis ulang
+            ftruncate($file_handle, 0);
+            rewind($file_handle);
+            fwrite($file_handle, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        }
     }
-}
 
-// Simpan jika ada yang diubah
-if ($updated) {
-    if (file_put_contents($json_file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE))) {
-        echo json_encode(['success' => true, 'msg' => 'Notifikasi diperbarui']);
+    flock($file_handle, LOCK_UN); // Lepaskan lock
+    fclose($file_handle);
+
+    if ($updated) {
+        echo json_encode(['status' => 'success', 'message' => 'Semua notifikasi telah ditandai sebagai dibaca.']);
     } else {
-        echo json_encode(['success' => false, 'msg' => 'Gagal menyimpan perubahan']);
+        echo json_encode(['status' => 'success', 'message' => 'Tidak ada notifikasi baru untuk ditandai.']);
     }
+
 } else {
-    echo json_encode(['success' => true, 'msg' => 'Tidak ada notifikasi yang perlu diperbarui']);
+    fclose($file_handle);
+    http_response_code(503);
+    echo json_encode(['status' => 'error', 'message' => 'Server sibuk, coba lagi nanti.']);
 }
+?>

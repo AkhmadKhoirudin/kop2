@@ -25,26 +25,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Ambil ID simpanan yang baru saja dibuat
             $id_simpanan = mysqli_insert_id($conn);
 
-            // Simpan juga ke pesan.json (versi 1)
-            $pesan_json_file = '../pesan/pesan.json';
-            $pesan_data = file_exists($pesan_json_file)
-                ? json_decode(file_get_contents($pesan_json_file), true)
-                : [];
-
-            if (!is_array($pesan_data)) $pesan_data = [];
-
-            $pesan_data[] = [
-                "versi" => 1,
-                "id" => $id_simpanan,
+            // Tambahkan notifikasi menggunakan fungsi terpusat
+            include_once __DIR__ . '/../pesan/fungsi_pesan.php';
+            $notifikasi_baru = [
+                "versi"      => 1,
+                "id"         => $id_simpanan,
                 "id_anggota" => $id_anggota,
-                "tanggal" => $tanggal,
-                "jumlah" => (int)$jumlah,
-                "id_prodak" => $id_prodak,
-                "status" => "belum"
+                "tanggal"    => $tanggal,
+                "jumlah"     => (int)$jumlah,
+                "id_prodak"  => $id_prodak,
+                "status"     => "belum"
             ];
 
-            file_put_contents($pesan_json_file, json_encode($pesan_data, JSON_PRETTY_PRINT));
+            tambahNotifikasi($notifikasi_baru);
+
             header("Location: list.php?pesan=sukses");
+            exit(); // Pastikan script berhenti setelah redirect
         } else {
             $pesan = "Gagal menyimpan.";
         }

@@ -27,29 +27,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   VALUES ('$id_anggota', '$id_produk', '$jumlah', '$tanggal')";
         if (mysqli_query($conn, $query)) {
             $pesan = "Penarikan berhasil sebesar Rp " . number_format($jumlah, 0, ',', '.');
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // Simpan juga ke pesan.json/////////////////////////////////////////////////////////////////////////////////////////
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            $pesan_json_file = '../pesan/pesan.json';
-
-            $pesan_data = file_exists($pesan_json_file)
-                ? json_decode(file_get_contents($pesan_json_file), true)
-                : [];
-
-            if (!is_array($pesan_data)) $pesan_data = [];
-
-            $pesan_data[] = [
-                "versi" => 3,
+            // Tambahkan notifikasi menggunakan fungsi terpusat
+            include_once __DIR__ . '/../pesan/fungsi_pesan.php';
+            $notifikasi_baru = [
+                "versi"        => 3,
                 "id_penarikan" => mysqli_insert_id($conn),
-                "id_anggota"=>$id_anggota,
-                "id_produk" => $id_produk,
-                "tanggal" => $tanggal,
-                "jumlah" => (int)$jumlah,
-                "status" => "belum"
+                "id_anggota"   => $id_anggota,
+                "id_produk"    => $id_produk,
+                "tanggal"      => $tanggal,
+                "jumlah"       => (int)$jumlah,
+                "status"       => "belum"
             ];
 
-            // Tulis kembali ke file pesan.json
-            file_put_contents($pesan_json_file, json_encode($pesan_data, JSON_PRETTY_PRINT));
+            tambahNotifikasi($notifikasi_baru);
 
 
         } else {

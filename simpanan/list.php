@@ -59,6 +59,7 @@ $result = mysqli_query($conn, $query);
                         <th class="px-4 py-2 border text-right">
                             <a href="?sort=jumlah&order=<?= $sort === 'jumlah' && $order === 'asc' ? 'desc' : 'asc' ?>" class="hover:underline">Jumlah</a>
                         </th>
+                        <th class="px-4 py-2 border">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -69,6 +70,9 @@ $result = mysqli_query($conn, $query);
                             <td class="px-4 py-2 border"><?= htmlspecialchars($row['nama_produk']) ?></td>
                             <td class="px-4 py-2 border"><?= htmlspecialchars($row['tanggal']) ?></td>
                             <td class="px-4 py-2 border text-right">Rp <?= number_format($row['jumlah'], 0, ',', '.') ?></td>
+                            <td class="px-4 py-2 border text-center">
+                                <a href="../laporan/slip.php?jenis=simpanan&id=<?= $row['id_simpanan'] ?>" target="_blank" class="text-blue-500 hover:underline">Print</a>
+                            </td>
                         </tr>
                     <?php endwhile; ?>
                 </tbody>

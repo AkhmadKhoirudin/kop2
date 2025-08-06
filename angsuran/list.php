@@ -178,8 +178,9 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
                             <td class="px-3 py-2 mobile-p-2 whitespace-nowrap">
                                 <button onclick="openUpdatePopup(<?php echo $row['id_angsuran']; ?>, '<?php echo $row['jumlah']; ?>', '<?php echo $row['status']; ?>')" 
                                         class="text-blue-500 hover:underline mobile-text-sm">Edit</button> |
-                                <button onclick="confirmDelete(<?php echo $row['id_angsuran']; ?>)" 
-                                        class="text-red-500 hover:underline mobile-text-sm">Hapus</button>
+                                <button onclick="confirmDelete(<?php echo $row['id_angsuran']; ?>)"
+                                        class="text-red-500 hover:underline mobile-text-sm">Hapus</button> |
+                                <a href="../laporan/slip.php?jenis=angsuran&id=<?= $row['id_angsuran'] ?>" target="_blank" class="text-blue-500 hover:underline mobile-text-sm">Print</a>
                             </td>
                         </tr>
                     <?php endforeach; ?>

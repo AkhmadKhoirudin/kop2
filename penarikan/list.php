@@ -44,6 +44,7 @@ $data = $conn->query("SELECT * FROM tarik");
         <td>Rp <?= number_format($row['jumlah'], 0, ',', '.') ?></td>
         <td>
             <a href="?hapus=<?= $row['id_tarik'] ?>" onclick="return confirm('Hapus penarikan ini?')">Hapus</a>
+            | <a href="../laporan/slip.php?jenis=tarik&id=<?= $row['id_tarik'] ?>" target="_blank">Print</a>
         </td>
     </tr>
     <?php endwhile; ?>

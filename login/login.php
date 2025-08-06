@@ -104,16 +104,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Login & Registrasi</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" type="image/png" href="../logo.png">
+    <link rel="icon" type="image/png" href="../11logo.png">
 </head>
 <body class="bg-gray-100 h-full flex items-center justify-center p-4">
     <div class="w-full max-w-md bg-white rounded-xl shadow-md overflow-hidden">
         <!-- Login Form (Default) -->
         <div id="loginForm" class="<?php echo $show_login ? '' : 'hidden'; ?> p-8">
             <div class="text-center mb-8">
-                <img src="../logo.png" alt="Logo" class="w-20 h-20 mx-auto">
-                <h2 class="text-2xl font-bold text-gray-800 mt-4">Masuk ke Akun Anda</h2>
-            </div>
+    <!-- Logo kiri dan kanan -->
+    <div class="flex justify-center items-center space-x-6">
+        <img src="../11logo.png" alt="Logo PMA" class="w-20 h-20">
+        <img src="../koperasi_indonesia.jpg" alt="Logo Indonesia" class="w-20 h-20">
+    </div>
+
+    <!-- Judul -->
+    <h2 class="text-2xl font-bold text-indigo-800 mt-4">Masuk ke Akun Anda</h2>
+</div>
+
             
             <?php if (isset($login_error)): ?>
                 <div class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg"><?= $login_error ?></div>
@@ -162,10 +169,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <!-- Register Form -->
         <div id="registerForm" class="<?php echo $show_login ? 'hidden' : ''; ?> p-8">
-            <div class="text-center mb-8">
-                <img src="../logo.png" alt="Logo" class="w-20 h-20 mx-auto">
-                <h2 class="text-2xl font-bold text-gray-800 mt-4">Buat Akun Baru</h2>
+           <div class="text-center mb-8">
+                <!-- Logo kiri dan kanan -->
+                <div class="flex justify-center items-center space-x-6">
+                    <img src="../11logo.png" alt="Logo PMA" class="w-20 h-20">
+                    <img src="../koperasi_indonesia.jpg" alt="Logo Indonesia" class="w-20 h-20">
+                </div>
+
+                <!-- Judul -->
+                <h2 class="text-2xl font-bold text-indigo-800 mt-4">Masuk ke Akun Anda</h2>
             </div>
+
             
             <?php if (isset($register_error)): ?>
                 <div class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg"><?= $register_error ?></div>
