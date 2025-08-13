@@ -130,14 +130,14 @@ if (isset($_GET['get_jenis']) && isset($_GET['id_anggota'])) {
     <form method="POST" class="space-y-4">
         <div>
             <label for="id_anggota" class="block text-sm font-medium text-gray-700">ID Anggota:</label>
-            <input type="number" name="id_anggota" id="id_anggota" required
-                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+            <input type="number" name="id_anggota" id="id_anggota" type="text" required
+                    class="mt-1 block w-full border-b border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-xl">
         </div>
 
         <div>
             <label for="id_produk" class="block text-sm font-medium text-gray-700">Jenis Simpanan:</label>
             <select name="id_produk" id="id_produk" required
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    class="mt-1 block w-full  border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ">
                 <option value="">Pilih Jenis Simpanan</option>
             </select>
         </div>
@@ -145,7 +145,7 @@ if (isset($_GET['get_jenis']) && isset($_GET['id_anggota'])) {
         <div>
             <label for="jumlah" class="block text-sm font-medium text-gray-700">Jumlah Penarikan:</label>
             <input type="text" name="jumlah" id="jumlah" required
-                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-xl">
         </div>
 
         <div>

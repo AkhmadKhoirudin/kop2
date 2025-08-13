@@ -81,19 +81,44 @@ $data['id_'.$jenis_transaksi] = $jenis_transaksi . '-' . str_pad($data['id_'.$je
 <head>
     <title>Bukti Transaksi <?= ucfirst($jenis_transaksi) ?></title>
     <style>
-        body { font-family: Arial, sans-serif; }
-        .struk { width: 700px; border: 1px solid #000; padding: 10px; margin: auto; }
+        body { 
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .struk { 
+            width: 700px; 
+            border: 2px solid #333; 
+            padding: 25px; 
+            margin: 20px auto;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 5px;
+        }
         .header {
             text-align: center;
             position: relative;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: -2px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
         }
         .header-text {
             flex-grow: 1;
-            padding: 0;
+            padding: 0 20px;
+        }
+        .header-text h3 {
+            margin: 5px 0;
+            color: #2c3e50;
+            font-size: 18px;
+        }
+        .header-text p {
+            margin: 5px 0;
+            font-size: 13px;
+            color: #555;
         }
         .logo {
             height: 80px;
@@ -112,29 +137,81 @@ $data['id_'.$jenis_transaksi] = $jenis_transaksi . '-' . str_pad($data['id_'.$je
         .content table {
             width: 100%;
             border-collapse: collapse;
+            margin: 15px 0;
         }
         .content td {
-            padding: 5px 10px;
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
         }
         .content td:first-child {
-            width: 30%;
+            width: 35%;
             font-weight: bold;
+            color: #333;
+        }
+        .content tr:last-child td {
+            border-bottom: none;
         }
         .footer {
-            margin-top: 20px;
+            margin-top: 30px;
             text-align: center;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+        .footer table {
+            width: 100%;
+        }
+        .footer td {
+            padding: 5px;
+            text-align: center;
+        }
+        .print-button {
+            display: block;
+            margin: 0 auto 20px;
+            padding: 10px 25px; 
+            background: #3498db; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        .print-button:hover {
+            background: #2980b9;
+        }
+        .pesan {
+            font-weight: bold;
+            color: #27ae60;
+            margin: 10px 0;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .amount {
+            font-weight: bold;
+            color: #e74c3c;
         }
         @media print {
             @page {
                 size: auto;
-                margin: 0;
+                margin: 10mm;
             }
             body {
                 margin: 0;
-                padding: 10px;
+                padding: 0;
+                background: white;
             }
             .print-button {
                 display: none !important;
+            }
+            .struk {
+                box-shadow: none;
+                border: 1px solid #000;
+                width: 97%;
+                padding: 10px;
+                margin: 0;
             }
         }
     </style>
@@ -144,19 +221,19 @@ $data['id_'.$jenis_transaksi] = $jenis_transaksi . '-' . str_pad($data['id_'.$je
     <meta http-equiv="Expires" content="0">
 </head>
 <body>
-    <button class="print-button" onclick="window.print()" style="padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
-        Cetak Dokumen
-    </button> <br>
+    <button class="print-button" onclick="window.print()">
+        <i class="fas fa-print"></i> Cetak Dokumen
+    </button>
     
     <div class="struk">
         <div class="header">
-            <img src="../11logo.png" alt="Koperasi" class="logo logo-kiri">
+            <img src="https://github.com/AkhmadKhoirudin/kop2/blob/main/logo-removebg-preview.png?raw=true" alt="Logo Koperasi" class="logo logo-kiri">
             <div class="header-text">
                 <h3>KOPERASI SIMPAN PINJAM DAN PEMBIAYAN PERAMBABULAN MAKMUR ABADIH</h3>
                 <p>Jl. Ki Gede Mayung, Sambeng, Kec. Gunungjati, Kabupaten Cirebon, Jawa Barat 45151</p>
-                <p style="font-weight: bold;"><?= htmlspecialchars($pesan) ?></p>
+                <p class="pesan"><?= htmlspecialchars($pesan) ?></p>
             </div>
-            <img src="../koperasi_indonesia.jpg" alt="Koperasi" class="logo logo-kanan">
+            <img src="https://github.com/AkhmadKhoirudin/kop2/blob/main/koperasi_indonesia.jpg?raw=true" alt="Logo Koperasi Indonesia" class="logo logo-kanan">
         </div>
         
         <div class="content">
@@ -185,11 +262,11 @@ $data['id_'.$jenis_transaksi] = $jenis_transaksi . '-' . str_pad($data['id_'.$je
                     </tr>
                     <tr>
                         <td>JUMLAH PINJAMAN</td>
-                        <td>: Rp <?= number_format($data['jumlah'], 0, ',', '.') ?></td>
+                        <td>: <span class="amount">Rp <?= number_format($data['jumlah'], 0, ',', '.') ?></span></td>
                     </tr>
                     <tr>
                         <td>TANGGAL PENGAJUAN</td>
-                        <td>: <?= date("Y-m-d", strtotime($data['tanggal_pengajuan'])) ?></td>
+                        <td>: <?= date("d-m-Y", strtotime($data['tanggal_pengajuan'])) ?></td>
                     </tr>
                     <tr>
                         <td>TENOR</td>
@@ -202,11 +279,11 @@ $data['id_'.$jenis_transaksi] = $jenis_transaksi . '-' . str_pad($data['id_'.$je
                     </tr>
                     <tr>
                         <td>JUMLAH SIMPANAN</td>
-                        <td>: Rp <?= number_format($data['jumlah'], 0, ',', '.') ?></td>
+                        <td>: <span class="amount">Rp <?= number_format($data['jumlah'], 0, ',', '.') ?></span></td>
                     </tr>
                     <tr>
                         <td>TANGGAL TRANSAKSI</td>
-                        <td>: <?= date("Y-m-d", strtotime($data['tanggal'])) ?></td>
+                        <td>: <?= date("d-m-Y", strtotime($data['tanggal'])) ?></td>
                     </tr>
                 <?php elseif ($jenis_transaksi == 'tarik'): ?>
                     <tr>
@@ -215,11 +292,11 @@ $data['id_'.$jenis_transaksi] = $jenis_transaksi . '-' . str_pad($data['id_'.$je
                     </tr>
                     <tr>
                         <td>JUMLAH PENARIKAN</td>
-                        <td>: Rp <?= number_format($data['jumlah'], 0, ',', '.') ?></td>
+                        <td>: <span class="amount">Rp <?= number_format($data['jumlah'], 0, ',', '.') ?></span></td>
                     </tr>
                     <tr>
                         <td>TANGGAL TRANSAKSI</td>
-                        <td>: <?= date("Y-m-d", strtotime($data['tanggal'])) ?></td>
+                        <td>: <?= date("d-m-Y", strtotime($data['tanggal'])) ?></td>
                     </tr>
                 <?php elseif ($jenis_transaksi == 'angsuran'): ?>
                     <tr>
@@ -232,41 +309,48 @@ $data['id_'.$jenis_transaksi] = $jenis_transaksi . '-' . str_pad($data['id_'.$je
                     </tr>
                     <tr>
                         <td>JUMLAH BAYAR</td>
-                        <td>: Rp <?= number_format($data['jumlah'], 0, ',', '.') ?></td>
+                        <td>: <span class="amount">Rp <?= number_format($data['jumlah'], 0, ',', '.') ?></span></td>
                     </tr>
                     <tr>
                         <td>TOTAL PINJAMAN</td>
-                        <td>: Rp <?= number_format($data['total_pinjaman'], 0, ',', '.') ?></td>
+                        <td>: <span class="amount">Rp <?= number_format($data['total_pinjaman'], 0, ',', '.') ?></span></td>
                     </tr>
                 <?php endif; ?>
             </table>
         </div>
         
         <div class="footer">
-            <table width="100%">
+            <table>
                 <tr>
-                    <td><strong>Petugas</strong></td>
-                    <td><strong>Anggota</strong></td>
+                    <td width="50%"><strong>PETUGAS</strong></td>
+                    <td width="50%"><strong>ANGGOTA</strong></td>
                 </tr>
-                <tr><td height="50px"></td><td height="50px"></td></tr>
+                <tr><td height="60px"></td><td height="60px"></td></tr>
                 <tr>
                     <td>
                         <?php if ($_SESSION['role'] == 'admin'): ?>
-                            <?= htmlspecialchars($_SESSION['nama']) ?> 
+                            <u><?= htmlspecialchars($_SESSION['nama']) ?></u> 
                         <?php else: ?>
                             ________________
                         <?php endif; ?>
                     </td>
                     <td>
                         <?php if ($_SESSION['role'] == 'user'): ?>
-                            <?= htmlspecialchars($_SESSION['nama']) ?>
+                            <u><?= htmlspecialchars($_SESSION['nama']) ?></u>
                         <?php else: ?>
                             ________________
                         <?php endif; ?>
                     </td>
                 </tr>
+                <tr>
+                    <td>Tanggal: <?= date("d-m-Y") ?></td>
+                    <td></td>
+                </tr>
             </table>
         </div>                
     </div>
+    
+    <!-- Optional: Add Font Awesome for printer icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </body>
 </html>

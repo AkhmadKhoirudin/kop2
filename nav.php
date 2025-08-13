@@ -189,6 +189,26 @@ $foto_ada = $foto && file_exists($foto_path);
           </div>
 
           <!-- User Management (Admin Only) -->
+<!-- Laporan -->
+            <div class="relative">
+                <button @click="activeMenu = activeMenu === 'laporan' ? null : 'laporan'" class="flex items-center justify-between w-full px-4 py-2 text-white hover:bg-indigo-700 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-file-invoice-dollar mr-3"></i>
+                        <span>Laporan</span>
+                    </div>
+                    <i :class="{'rotate-90': activeMenu === 'laporan'}" class="fas fa-chevron-right text-xs transition-transform"></i>
+                </button>
+                <div x-show="activeMenu === 'laporan'" x-transition class="pl-8 mt-1 space-y-1">
+                    <a href="#" onclick="navigateTo('./laporan/harian_laporan.php')" class="flex items-center px-3 py-2 text-sm text-indigo-100 hover:bg-indigo-600 rounded">
+                        <i class="fas fa-calendar-day mr-2"></i>
+                        Laporan Harian
+                    </a>
+                    <a href="#" onclick="navigateTo('./laporan/report_bulanan.php')" class="flex items-center px-3 py-2 text-sm text-indigo-100 hover:bg-indigo-600 rounded">
+                        <i class="fas fa-calendar-month mr-2"></i>
+                        Laporan Bulanan
+                    </a>
+                </div>
+            </div>
           <?php if ($role === 'admin'): ?>
           <div class="relative">
             <button @click="activeMenu = activeMenu === 'user' ? null : 'user'" class="flex items-center justify-between w-full px-4 py-2 text-white hover:bg-indigo-700 rounded-lg">

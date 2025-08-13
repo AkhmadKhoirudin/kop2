@@ -57,7 +57,7 @@ while ($row = $res_ekuitas->fetch_assoc()) {
 }
 
 function formatRupiah($angka) {
-    return "Rp " . number_format($angka, 0, ',', '.');
+    return "Rp " . number_format($angka, 0, ',', '');
 }
 
 function tampilkanTabel($judul, $data) {
