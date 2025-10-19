@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tanggal     = date('Y-m-d');
 
     // Cek apakah pinjaman valid dan belum lunas
-    $cek = mysqli_query($conn, "SELECT jumlah FROM pinjaman WHERE id_pinjaman = $id_pinjaman AND status != 'lunas'");
+    $cek = mysqli_query($conn, "SELECT jumlah FROM pinjaman WHERE id_pinjaman = $id_pinjaman AND status != 'sudah melakuakan pembayaran'");
     $pinjaman = mysqli_fetch_assoc($cek);
 
     if (!$pinjaman) {
@@ -18,8 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pesan = "Jumlah angsuran harus lebih dari 0.";
     } else {
         // Simpan angsuran
-        $query = "INSERT INTO angsuran (id_pinjaman, tanggal, jumlah, status) 
-                  VALUES ('$id_pinjaman', '$tanggal', '$jumlah', 'sudah melakukan pembayaran')";
+        $query = "INSERT INTO angsuran (id_pinjaman, tanggal, jumlah, status)
+                  VALUES ('$id_pinjaman', '$tanggal', '$jumlah', 'sudah melakuakan pembayaran')";
         if (mysqli_query($conn, $query)) {
             // Hitung total angsuran sekarang
             $sum = mysqli_query($conn, "SELECT SUM(jumlah) as total FROM angsuran WHERE id_pinjaman = $id_pinjaman");
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($total_bayar >= $pinjaman['jumlah']) {
                 // Update status jadi lunas
-                mysqli_query($conn, "UPDATE pinjaman SET status = 'lunas' WHERE id_pinjaman = $id_pinjaman");
+                mysqli_query($conn, "UPDATE pinjaman SET status = 'sudah melakuakan pembayaran' WHERE id_pinjaman = $id_pinjaman");
             }
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -80,7 +80,7 @@ if (isset($_GET['get_pinjaman']) && isset($_GET['id_anggota'])) {
         SELECT p.id_pinjaman, pr.nama_produk 
         FROM pinjaman p
         LEFT JOIN produk pr ON p.id_produk = pr.id
-        WHERE p.id_anggota = $id AND p.status != 'lunas'
+        WHERE p.id_anggota = $id AND p.status != 'sudah melakuakan pembayaran'
     ");
     while ($row = mysqli_fetch_assoc($result)) {
         $data[] = $row;

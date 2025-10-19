@@ -56,22 +56,63 @@ $notifikasiBelum = array_filter($data, function ($item) use ($idAnggota) {
         </div>
       <?php else: ?>
         <?php foreach ($notifikasiBelum as $item): ?>
-          <div class="bg-white p-5 rounded-lg shadow border-l-4 border-yellow-500 transition hover:shadow-md">
+          <div class="bg-white p-5 rounded-lg shadow border-l-4 border-yellow-500 transition hover:shadow-md cursor-pointer notification-item"
+               onclick="showSlip(<?= htmlspecialchars($item['versi']) ?>, <?= isset($item['id']) ? $item['id'] :
+                     (isset($item['id_simpanan']) ? $item['id_simpanan'] :
+                     (isset($item['id_pinjaman']) ? $item['id_pinjaman'] :
+                     (isset($item['id_penarikan']) ? $item['id_penarikan'] :
+                     (isset($item['id_angsuran']) ? $item['id_angsuran'] : 0)))) ?>)">
             <div class="flex items-center justify-between mb-2">
               <span class="text-sm font-medium text-gray-700">📅 <?= htmlspecialchars($item['tanggal']) ?></span>
               <span class="text-sm text-red-500 font-semibold uppercase"><?= htmlspecialchars($item['status']) ?></span>
             </div>
             <div class="text-gray-700 space-y-1">
               <p><strong>Jumlah:</strong> Rp<?= number_format($item['jumlah'], 0, ',', '.') ?></p>
-              <p><strong>Produk:</strong> 
-                <?= isset($item['id_prodak']) ? "Produk ID " . htmlspecialchars($item['id_prodak']) : 
+              <p><strong>Produk:</strong>
+                <?= isset($item['id_prodak']) ? "Produk ID " . htmlspecialchars($item['id_prodak']) :
                      (isset($item['id_produk']) ? "Produk ID " . htmlspecialchars($item['id_produk']) : '-') ?>
               </p>
+              <p class="text-xs text-blue-600 mt-2">👆 Klik untuk melihat detail struk</p>
             </div>
           </div>
         <?php endforeach; ?>
       <?php endif; ?>
     </div>
   </div>
+
+  <script>
+    function showSlip(versi, id) {
+      // Validasi parameter
+      if (!versi || !id) {
+        alert('Parameter tidak valid');
+        return;
+      }
+      
+      // Redirect ke halaman slip dengan parameter di dalam iframe
+      const parentWindow = window.parent;
+      if (parentWindow && parentWindow.navigateTo) {
+        parentWindow.navigateTo(`slip.php?versi=${versi}&id=${encodeURIComponent(id)}`);
+      } else {
+        // Fallback jika tidak bisa diakses dari parent
+        window.location.href = `slip.php?versi=${versi}&id=${encodeURIComponent(id)}`;
+      }
+    }
+    
+    // Tambahkan efek hover untuk notifikasi
+    document.addEventListener('DOMContentLoaded', function() {
+      const notificationItems = document.querySelectorAll('.notification-item');
+      
+      notificationItems.forEach(item => {
+        item.addEventListener('mouseenter', function() {
+          this.style.transform = 'translateX(5px)';
+          this.style.transition = 'transform 0.2s ease';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+          this.style.transform = 'translateX(0)';
+        });
+      });
+    });
+  </script>
 </body>
 </html>

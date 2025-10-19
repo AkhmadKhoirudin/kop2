@@ -91,7 +91,7 @@ try {
 
             for ($j = 1; $j <= $tenor; $j++) {
                 $tglAngsur = date('Y-m-d', strtotime("$tanggal +$j months"));
-                $statusAngsur = $j <= $bayar ? 'sudah melakuakan pembayaran' : 'belum melakuakan pembayaran';
+                $statusAngsur = $j <= $bayar ? 'sudah melakukan pembayaran' : 'belum melakukan pembayaran';
 
                 $pdo->prepare("INSERT INTO angsuran (id_pinjaman, tanggal, jumlah, status) 
                                 VALUES (?, ?, ?, ?)")

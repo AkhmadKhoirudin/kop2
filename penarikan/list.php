@@ -2,6 +2,11 @@
 // Koneksi ke DB
 $conn = new mysqli("localhost", "root", "", "koperasi");
 
+// Cek session dan ambil role serta id_anggota
+session_start();
+$role = isset($_SESSION['role']) ? $_SESSION['role'] : '';
+$id_anggota = isset($_SESSION['id_anggota']) ? $_SESSION['id_anggota'] : '';
+
 // Hapus penarikan
 if (isset($_GET['hapus'])) {
     $id_tarik = intval($_GET['hapus']);
@@ -31,7 +36,7 @@ if ($page < 1) $page = 1;
 $offset = ($page - 1) * $limit;
 
 // Hitung total data
-$countSql = "SELECT COUNT(*) AS total 
+$countSql = "SELECT COUNT(*) AS total
              FROM tarik
              LEFT JOIN anggota ON tarik.id_anggota = anggota.id_anggota";
 if ($keyword !== "") {
@@ -43,12 +48,16 @@ if ($keyword !== "") {
                    OR tarik.tanggal LIKE '%$keywordEscaped%'
                    OR tarik.jumlah LIKE '%$keywordEscaped%'";
 }
+// Filter berdasarkan role
+if ($role === 'user' && $id_anggota !== '') {
+    $countSql .= ($keyword !== "" ? " AND" : " WHERE") . " tarik.id_anggota = '$id_anggota'";
+}
 $totalResult = $conn->query($countSql);
 $totalData = $totalResult->fetch_assoc()['total'];
 $totalPages = ceil($totalData / $limit);
 
 // Query tarik
-$sql = "SELECT tarik.*, anggota.nama AS nama_anggota 
+$sql = "SELECT tarik.*, anggota.nama AS nama_anggota
         FROM tarik
         LEFT JOIN anggota ON tarik.id_anggota = anggota.id_anggota";
 if ($keyword !== "") {
@@ -58,6 +67,10 @@ if ($keyword !== "") {
               OR tarik.id_produk LIKE '%$keywordEscaped%'
               OR tarik.tanggal LIKE '%$keywordEscaped%'
               OR tarik.jumlah LIKE '%$keywordEscaped%'";
+}
+// Filter berdasarkan role
+if ($role === 'user' && $id_anggota !== '') {
+    $sql .= ($keyword !== "" ? " AND" : " WHERE") . " tarik.id_anggota = '$id_anggota'";
 }
 $sql .= " ORDER BY tarik.id_tarik DESC LIMIT $limit OFFSET $offset";
 $data = $conn->query($sql);
@@ -82,8 +95,10 @@ $data = $conn->query($sql);
                     <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Cari</button>
                     <button type="reset" onclick="window.location='?'" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg">Reset</button>
                 </form>
-                <!-- Tombol tambah -->
+                <!-- Tombol tambah - hanya tampilkan untuk admin -->
+                <?php if ($role === 'admin'): ?>
                 <a href="penarikan.php" class="bg-green-500 text-white px-4 py-2 rounded-lg">+ Tambah</a>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -106,12 +121,23 @@ $data = $conn->query($sql);
                         <td class="px-3 py-2"><?= $row['tanggal'] ?></td>
                         <td class="px-3 py-2">Rp <?= number_format($row['jumlah'], 0, ',', '.') ?></td>
                         <td class="whitespace-nowrap flex gap-2">
+                            <?php if ($role === 'admin'): ?>
                             <a href="?hapus=<?= $row['id_tarik'] ?>" onclick="return confirm('Hapus penarikan ini?')" class="text-red-500 hover:underline">Hapus</a>
+                            <?php endif; ?>
                             <a href="../laporan/slip.php?jenis=tarik&id=<?= $row['id_tarik'] ?>" target="_blank" class="text-blue-500 hover:underline">Print</a>
+                            <?php if ($role === 'admin'): ?>
                             <a href="#" onclick="openUpdatePopup('<?= $row['id_tarik'] ?>', '<?= $row['jumlah'] ?>', '<?= $status ?>'); return false;" class="text-blue-500 hover:underline">Edit</a>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 <?php endwhile; ?>
+                <?php if ($data->num_rows === 0): ?>
+                    <tr>
+                        <td colspan="6" class="px-3 py-8 text-center text-gray-500">
+                            Tidak ada transaksi
+                        </td>
+                    </tr>
+                <?php endif; ?>
             </table>
 
             <!-- Pagination -->

@@ -48,14 +48,26 @@ function getDashboardStats() {
         $anggotaLastMonth = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
         $persenAnggota = $anggotaLastMonth > 0 ? round(($totalAnggota - $anggotaLastMonth) / $anggotaLastMonth * 100) : 0;
         
-        // Hitung persentase perubahan simpanan
-        $stmt = $conn->prepare("SELECT SUM(jumlah) as total FROM simpanan 
-                               WHERE DATE_FORMAT(tanggal, '%Y-%m') = :lastMonth");
-        $stmt->bindParam(':lastMonth', $lastMonth);
-        $stmt->execute();
-        $simpananLastMonth = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
-        $persenSimpanan = $simpananLastMonth > 0 ? round(($totalSimpanan - $simpananLastMonth) / $simpananLastMonth * 100) : 0;
-        
+        // Hitung simpanan bulan ini
+$thisMonth = date('Y-m');
+$stmt = $conn->prepare("SELECT SUM(jumlah) as total FROM simpanan 
+                       WHERE DATE_FORMAT(tanggal, '%Y-%m') = :thisMonth");
+$stmt->bindParam(':thisMonth', $thisMonth);
+$stmt->execute();
+$simpananThisMonth = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
+
+// Hitung simpanan bulan lalu
+$stmt = $conn->prepare("SELECT SUM(jumlah) as total FROM simpanan 
+                       WHERE DATE_FORMAT(tanggal, '%Y-%m') = :lastMonth");
+$stmt->bindParam(':lastMonth', $lastMonth);
+$stmt->execute();
+$simpananLastMonth = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
+
+// Hitung persentase perubahan simpanan (bulan ini vs bulan lalu)
+$persenSimpanan = $simpananLastMonth > 0 
+    ? round(($simpananThisMonth - $simpananLastMonth) / $simpananLastMonth * 100) 
+    : 0;
+
          // Hitung persentase perubahan pinjaman dengan status cair dan berjalan
         $stmt = $conn->prepare("SELECT COUNT(*) as total FROM pinjaman 
                                 WHERE (status = 'berjalan' OR status = 'cair') 

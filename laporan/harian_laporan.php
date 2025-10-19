@@ -1,9 +1,4 @@
 <?php
-// File: laporan_harian_expandable_complete.php
-
-// ==============================================
-// KONEKSI DATABASE DAN LOGIKA PHP
-// ==============================================
 
 function connectDB() {
     $host = '127.0.0.1';
@@ -165,15 +160,21 @@ $manager_nama = "menejer";
     <div class="container mx-auto px-4 py-8">
         <!-- Header -->
         <div class="flex flex-col items-center mb-8 border-b-2 border-blue-800 pb-4">
-            <div class="flex items-center mb-4">
-                <img src="logo-koperasi.png" alt="Logo Koperasi" class="h-16 w-16 mr-4">
-                <div>
-                    <h1 class="text-2xl font-bold text-blue-800">KSPPS BERKAH ABADI</h1>
-                    <p class="text-gray-600">Jl. Koperasi No. 123, Kota Cirebon</p>
-                </div>
-            </div>
-            <h2 class="text-xl font-semibold text-blue-700">LAPORAN HARIAN TRANSAKSI</h2>
-            <h3 class="text-lg text-gray-600">Tanggal: <?= formatTanggal($tanggal) ?></h3>
+            <div class="flex items-center justify-between mb-4">
+    <!-- Logo kiri -->
+    <img src="../11logo.png" alt="Logo Koperasi" class="h-16 w-16 object-contain">
+
+    <!-- Teks di tengah -->
+    <div class="flex-1 text-center">
+        <h1 class="text-2xl font-bold text-blue-800">KSPPS BERKAH ABADI</h1>
+        <p class="text-gray-600">Jl. Koperasi No. 123, Kota Cirebon</p>
+    </div>
+
+    <!-- Logo kanan -->
+    <img src="../koperasi_indonesia.jpg" alt="Logo Koperasi" class="h-16 w-16 object-contain">
+</div>
+
+           
 <!-- Form Tanggal -->
     <div class="mb-6">
         <form method="GET" action="">
@@ -190,11 +191,11 @@ $manager_nama = "menejer";
         </form>
     </div>
         </div>
-<!-- Button for Export to Excel/PDF -->
-<!-- Button for Export to PDF -->
-    <button onclick="exportToPDF()" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" style="margin-left: 8px;">
+    <!-- Button for Export to Excel/PDF -->
+    <!-- Button for Export to PDF -->
+    <button onclick="window.location.href='hari_laporan1.php?tanggal=<?= urlencode($tanggal) ?>'" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" style="margin-left: 8px;">
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m-5 3a2.5 2.5 0 01-2.5-2.5H5v-3A2.5 2.5 0 012.5 3v3h3m7.5-3v3m0 0v3m0-3h3m-3 0H18m-6 3a2.5 2.5 0 01-2.5-2.5M21 12a2 2 0 11-4 0 2 2 0 014 0M5.05 12.25l.45 1.01a2 2 0 001.6 1.6l1.45-1.01a2 2 0 002.21 0 .75.75 0 01.08-.67l2.25-2.25a2 2 0 002.21 0 .75.75 0 00 1.08-.67l2.25-2.25M9.44 12.25l-.45 1.01a2 2 0 00-1.6 1.6l-1.45-1.01a2 2 0 00-2.21 0 .75.75 0 00-1.08.67l-2.25 2.25a2 2 0 00-2.21 0 .75.75 0 001.08.67l2.25 2.25M7.25 10l-.45-1.01a2 2 0 00-1.6-1.6l-1.45 1.01a2 2 0 00-2.21 0 .75.75 0 00-1.08.67L.25 11.25a2 2 0 000 2.25.75.75 0 001.08.67l2.25 2.25a2 2 0 002.21 0 .75.75 0 000 1.08l-2.25 2.25M4.75 17.25l.45-1.01a2 2 0 001.6-1.6l1.45 1.01a2 2 0 002.21 0 .75.75 0 001.08.67l2.25 2.25a2 2 0 002.21 0 .75.75 0 000 1.08l-2.25 2.25"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
         </svg>
         Export to PDF
     </button>
@@ -621,6 +622,7 @@ $manager_nama = "menejer";
             link.click();
             document.body.removeChild(link);
         }
+
     </script>
 </body>
 </html>

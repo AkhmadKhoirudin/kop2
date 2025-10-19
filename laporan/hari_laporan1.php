@@ -329,6 +329,8 @@
     </div>
 
     <button class="print-button" onclick="window.print()">Cetak Halaman</button>
+    
+    <button class="print-button" onclick="exportToPDF()" style="background-color: #dc3545; margin-left: 10px;">Export ke PDF</button>
 
     <div class="container">
         <div class="kop">
@@ -349,12 +351,12 @@
 
         <br><h2 class="section-title" style="margin-top: 1px !important">1. RINGKASAN KEUANGAN HARIAN</h2>
         <ul>     
-            <li>Saldo Awal Hari: Rp <?= number_format($saldo_awal, 0, ',', '.') ?></li>
+            
             <li>Total Simpanan Masuk Hari Ini: Rp <?= number_format($total_simpanan_harian, 0, ',', '.') ?></li>
             <li>Angsuran Diterima Hari Ini: Rp <?= number_format($total_angsuran_harian, 0, ',', '.') ?></li>
             <li>Total Pinjaman Hari Ini: Rp <?= number_format($total_pinjaman_harian, 0, ',', '.') ?></li>
-<li>Total Penarikan Hari Ini: Rp <?= number_format($total_tarik_harian, 0, ',', '.') ?></li>
-            <li><strong>Saldo Akhir Hari: Rp <?= number_format($saldo_akhir, 0, ',', '.') ?></strong></li>
+            <li>Total Penarikan Hari Ini: Rp <?= number_format($total_tarik_harian, 0, ',', '.') ?></li>
+            <!-- <li><strong>Saldo Akhir Hari: Rp <?= number_format($saldo_akhir, 0, ',', '.') ?></strong></li> -->
         </ul>
 
         <br><h2 class="section-title">2. DATA SIMPANAN HARIAN</h2> 
@@ -532,6 +534,56 @@
             </div>
         </div>
     </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <script>
+        // Fungsi untuk export ke PDF
+        function exportToPDF() {
+            // Buat elemen PDF
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            
+            // Tambahkan font untuk mendukung karakter Indonesia
+            pdf.setFont('helvetica');
+    
+            // Ambil konten laporan
+            const content = document.querySelector('.container');
+            
+            // Gunakan html2canvas untuk mengubah HTML ke canvas
+            html2canvas(content, {
+                scale: 2,
+                useCORS: true,
+                logging: false
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                
+                // Hitung tinggi gambar untuk menyesuaikan dengan halaman PDF
+                const imgWidth = 190;
+                const pageHeight = 295;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                let heightLeft = imgHeight;
+                
+                let position = 35;
+                
+                // Tambahkan gambar ke PDF
+                pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+                
+                // Jika konten lebih dari satu halaman, tambahkan halaman baru
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+                
+                // Simpan PDF
+                pdf.save(`Laporan_Harian_<?= date('Y-m-d', strtotime($tanggal)) ?>.pdf`);
+            });
+        }
+    </script>
     
 </body>
 </html>

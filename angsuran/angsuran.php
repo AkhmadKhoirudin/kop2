@@ -1,55 +1,99 @@
 <?php
+session_start();
 include '../config.php';
+
+// Cek apakah user sudah login
+if (!isset($_SESSION['id_anggota']) || !isset($_SESSION['role'])) {
+    header("Location: ../login/login.php");
+    exit();
+}
+
+// Dapatkan data session
+$id_anggota_session = $_SESSION['id_anggota'];
+$role_user = $_SESSION['role'];
+$nama_user = $_SESSION['nama'];
 
 // Proses simpan angsuran
 $pesan = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id_pinjaman = (int) $_POST['id_pinjaman'];
+    // Jika role adalah user, gunakan id_anggota dari session
+    // Jika role bukan user, gunakan id_anggota dari input form
+    if ($role_user === 'user') {
+        $id_anggota = $id_anggota_session;
+        // Validasi bahwa pinjaman milik user yang sedang login dan belum lunas
+        $id_pinjaman = (int) $_POST['id_pinjaman'];
+        $cek_pinjaman = mysqli_query($conn, "SELECT id_pinjaman FROM pinjaman WHERE id_pinjaman = $id_pinjaman AND id_anggota = $id_anggota AND status != 'lunas'");
+        if (mysqli_num_rows($cek_pinjaman) === 0) {
+            $pesan = "Pinjaman tidak ditemukan, tidak milik Anda, atau sudah lunas.";
+            header("Location: list.php?pesan=" . urlencode($pesan));
+            exit();
+        }
+    } else {
+        $id_anggota = (int) $_POST['id_anggota'];
+        $id_pinjaman = (int) $_POST['id_pinjaman'];
+    }
+    
     $jumlah      = preg_replace('/[^\d]/', '', $_POST['jumlah']);
     $tanggal     = date('Y-m-d');
 
     // Cek apakah pinjaman valid dan belum lunas
-    $cek = mysqli_query($conn, "SELECT jumlah FROM pinjaman WHERE id_pinjaman = $id_pinjaman AND status != 'lunas'");
+    $cek = mysqli_query($conn, "SELECT jumlah, status FROM pinjaman WHERE id_pinjaman = $id_pinjaman");
     $pinjaman = mysqli_fetch_assoc($cek);
 
     if (!$pinjaman) {
-        $pesan = "Pinjaman tidak ditemukan atau sudah lunas.";
+        $pesan = "Pinjaman tidak ditemukan.";
+    } elseif ($pinjaman['status'] === 'lunas') {
+        $pesan = "Pinjaman sudah lunas, tidak dapat melakukan angsuran.";
     } elseif ($jumlah <= 0) {
         $pesan = "Jumlah angsuran harus lebih dari 0.";
     } else {
-        // Simpan angsuran
-        $query = "INSERT INTO angsuran (id_pinjaman, tanggal, jumlah, status) 
-                  VALUES ('$id_pinjaman', '$tanggal', '$jumlah', 'sudah melakukan pembayaran')";
-        if (mysqli_query($conn, $query)) {
-            // Hitung total angsuran sekarang
-            $sum = mysqli_query($conn, "SELECT SUM(jumlah) as total FROM angsuran WHERE id_pinjaman = $id_pinjaman");
-            $angsuran = mysqli_fetch_assoc($sum);
-            $total_bayar = $angsuran['total'] ?? 0;
-
-            if ($total_bayar >= $pinjaman['jumlah']) {
-                // Update status jadi lunas
-                mysqli_query($conn, "UPDATE pinjaman SET status = 'lunas' WHERE id_pinjaman = $id_pinjaman");
-            }
-
-            // Tambahkan notifikasi menggunakan fungsi terpusat
-            include_once __DIR__ . '/../pesan/fungsi_pesan.php';
-            $notifikasi_baru = [
-                "versi"       => 4,
-                "id_angsuran" => mysqli_insert_id($conn),
-                "id_pinjaman" => $id_pinjaman,
-                "tanggal"     => $tanggal,
-                "jumlah"      => (int)$jumlah,
-                "status"      => "belum"
-            ];
-            
-            tambahNotifikasi($notifikasi_baru);
-
-            header("Location: list.php?pesan=sukses");
-            exit(); // Pastikan script berhenti setelah redirect
-              
-            $pesan = "Angsuran berhasil disimpan.";
+        // Validasi jumlah angsuran tidak melebihi sisa pinjaman
+        $total_bayar_sebelumnya = mysqli_query($conn, "SELECT SUM(jumlah) as total FROM angsuran WHERE id_pinjaman = $id_pinjaman");
+        $angsuran_sebelumnya = mysqli_fetch_assoc($total_bayar_sebelumnya);
+        $total_bayar = $angsuran_sebelumnya['total'] ?? 0;
+        $sisa_pinjaman = $pinjaman['jumlah'] - $total_bayar;
+        
+        if ($jumlah > $sisa_pinjaman) {
+            $pesan = "Jumlah angsuran tidak boleh melebihi sisa pinjaman (Rp " . number_format($sisa_pinjaman, 0, ',', '.') . ").";
         } else {
-            $pesan = "Gagal menyimpan angsuran.";
+            // Simpan angsuran dengan status 'sudah melakukan pembayaran' karena user sudah membayar
+            $query = "INSERT INTO angsuran (id_pinjaman, tanggal, jumlah, status)
+                      VALUES ('$id_pinjaman', '$tanggal', '$jumlah', 'sudah melakukan pembayaran')";
+            if (mysqli_query($conn, $query)) {
+                
+                // Hitung total angsuran sekarang
+                $sum = mysqli_query($conn, "SELECT SUM(jumlah) as total FROM angsuran WHERE id_pinjaman = $id_pinjaman");
+                $angsuran = mysqli_fetch_assoc($sum);
+                $total_bayar = $angsuran['total'] ?? 0;
+
+                if ($total_bayar >= $pinjaman['jumlah']) {
+                    // Update status jadi lunas jika total pembayaran >= jumlah pinjaman
+                    mysqli_query($conn, "UPDATE pinjaman SET status = 'lunas' WHERE id_pinjaman = $id_pinjaman");
+                } else {
+                    // Jika belum lunas, pastikan status adalah 'belum melakukan pembayaran'
+                    mysqli_query($conn, "UPDATE pinjaman SET status = 'belum melakukan pembayaran' WHERE id_pinjaman = $id_pinjaman AND status != 'lunas'");
+                }
+
+                // Tambahkan notifikasi menggunakan fungsi terpusat
+                include_once __DIR__ . '/../pesan/fungsi_pesan.php';
+                $notifikasi_baru = [
+                    "versi"       => 4,
+                    "id_angsuran" => mysqli_insert_id($conn),
+                    "id_pinjaman" => $id_pinjaman,
+                    "tanggal"     => $tanggal,
+                    "jumlah"      => (int)$jumlah,
+                    "status"      => "sudah"
+                ];
+                
+                tambahNotifikasi($notifikasi_baru);
+
+                header("Location: list.php?pesan=sukses");
+                exit(); // Pastikan script berhenti setelah redirect
+                  
+                $pesan = "Angsuran berhasil disimpan.";
+            } else {
+                $pesan = "Gagal menyimpan angsuran.";
+            }
         }
     }
 }
@@ -68,7 +112,7 @@ if (isset($_GET['get_pinjaman']) && isset($_GET['id_anggota'])) {
     $id = (int)$_GET['id_anggota'];
     $data = [];
     $result = mysqli_query($conn, "
-        SELECT p.id_pinjaman, pr.nama_produk 
+        SELECT p.id_pinjaman, pr.nama_produk
         FROM pinjaman p
         LEFT JOIN produk pr ON p.id_produk = pr.id
         WHERE p.id_anggota = $id AND p.status != 'lunas'
@@ -126,10 +170,22 @@ if (isset($_GET['get_list_angsuran']) && isset($_GET['id_pinjaman'])) {
 
     $data = [];
     while ($row = mysqli_fetch_assoc($query)) {
+        // Format status untuk tampilan yang lebih baik
+        $status_display = '';
+        if (empty($row['status']) || $row['status'] === 'belum melakukan pembayaran') {
+            $status_display = '<span class="text-red-600 font-semibold">BELUM DIBAYAR - Masih Ada Hutang</span>';
+        } elseif ($row['status'] === 'sudah melakukan pembayaran') {
+            $status_display = '<span class="text-green-600">Sudah Dibayar</span>';
+        } elseif ($row['status'] === 'Lunas') {
+            $status_display = '<span class="text-blue-600 font-semibold">LUNAS</span>';
+        } else {
+            $status_display = '<span class="text-gray-600">' . htmlspecialchars($row['status']) . '</span>';
+        }
+        
         $data[] = [
             'tanggal' => $row['tanggal'],
             'jumlah' => number_format($row['jumlah'], 0, ',', '.'),
-            'status' => $row['status']
+            'status' => $status_display
         ];
     }
 
@@ -150,13 +206,13 @@ if (isset($_GET['get_list_angsuran']) && isset($_GET['id_pinjaman'])) {
         const idPinjaman = document.getElementById('id_pinjaman');
         const detail = document.getElementById('detail');
 
-        idAnggota.addEventListener('input', function () {
-            const id = this.value;
-            fetch(`angsuran.php?get_nama=1&id_anggota=${id}`)
-                .then(res => res.json())
-                .then(data => namaAnggota.value = data.nama || '');
-
-            fetch(`angsuran.php?get_pinjaman=1&id_anggota=${id}`)
+        // Jika role adalah user, isi otomatis nama anggota dan pinjaman
+        <?php if ($role_user === 'user'): ?>
+            const sessionId = <?php echo $id_anggota_session; ?>;
+            namaAnggota.value = '<?php echo $nama_user; ?>';
+            
+            // Isi otomatis pinjaman milik user
+            fetch(`angsuran.php?get_pinjaman=1&id_anggota=${sessionId}`)
                 .then(res => res.json())
                 .then(data => {
                     idPinjaman.innerHTML = '<option value="">Pilih ID Pinjaman</option>';
@@ -164,7 +220,27 @@ if (isset($_GET['get_list_angsuran']) && isset($_GET['id_pinjaman'])) {
                         idPinjaman.innerHTML += `<option value="${item.id_pinjaman}">${item.id_pinjaman} - ${item.nama_produk}</option>`;
                     });
                 });
-        });
+            
+            // Disable input id_anggota untuk user
+            idAnggota.disabled = true;
+        <?php else: ?>
+            // Untuk non-user, biarkan input id_anggota bisa diubah
+            idAnggota.addEventListener('input', function () {
+                const id = this.value;
+                fetch(`angsuran.php?get_nama=1&id_anggota=${id}`)
+                    .then(res => res.json())
+                    .then(data => namaAnggota.value = data.nama || '');
+
+                fetch(`angsuran.php?get_pinjaman=1&id_anggota=${id}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        idPinjaman.innerHTML = '<option value="">Pilih ID Pinjaman</option>';
+                        data.forEach(item => {
+                            idPinjaman.innerHTML += `<option value="${item.id_pinjaman}">${item.id_pinjaman} - ${item.nama_produk}</option>`;
+                        });
+                    });
+            });
+        <?php endif; ?>
 
         idPinjaman.addEventListener('change', function () {
             const id = this.value;
@@ -190,7 +266,7 @@ if (isset($_GET['get_list_angsuran']) && isset($_GET['id_pinjaman'])) {
                             list.innerHTML = '<li>Belum ada angsuran.</li>';
                         } else {
                             data.forEach(item => {
-                                list.innerHTML += `<li>${item.tanggal} - Rp ${item.jumlah} (${item.status})</li>`;
+                                list.innerHTML += `<li>${item.tanggal} - Rp ${item.jumlah} ${item.status}</li>`;
                             });
                         }
                     });
@@ -218,14 +294,21 @@ if (isset($_GET['get_list_angsuran']) && isset($_GET['id_pinjaman'])) {
     <form method="POST" class="bg-white p-6 rounded shadow-md">
         <div class="mb-4">
             <label class="block text-gray-700 font-medium">ID Anggota:</label>
-            <input type="number" name="id_anggota" id="id_anggota" required 
-                   class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200">
+            <?php if ($role_user === 'user'): ?>
+                <input type="number" name="id_anggota" id="id_anggota" value="<?php echo $id_anggota_session; ?>" readonly
+                       class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100">
+                <input type="hidden" name="id_anggota" value="<?php echo $id_anggota_session; ?>">
+            <?php else: ?>
+                <input type="number" name="id_anggota" id="id_anggota" required
+                       class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200">
+            <?php endif; ?>
         </div>
 
         <div class="mb-4">
             <label class="block text-gray-700 font-medium">Nama Anggota:</label>
-            <input type="text" id="nama_anggota" readonly 
-                   class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100">
+            <input type="text" id="nama_anggota" readonly
+                   class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                   value="<?php echo $role_user === 'user' ? $nama_user : ''; ?>">
         </div>
 
         <div class="mb-4">

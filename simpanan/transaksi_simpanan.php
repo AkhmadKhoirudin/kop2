@@ -1,11 +1,22 @@
 <?php
+session_start();
 include '../config.php';
+
+// Cek apakah user sudah login
+if (!isset($_SESSION['id_anggota']) || !isset($_SESSION['role'])) {
+    header("Location: ../login/login.php");
+    exit();
+}
 
 // Ambil data anggota
 $anggota_result = mysqli_query($conn, "SELECT id_anggota, nama FROM anggota");
 
 // Ambil produk kategori SIMPANAN
 $produk_result = mysqli_query($conn, "SELECT id, nama_produk FROM produk WHERE kategori = 'SIMPANAN'");
+
+// Tentukan apakah user adalah admin atau user biasa
+$isAdmin = ($_SESSION['role'] === 'admin');
+$userId = $_SESSION['id_anggota'];
 
 // Simpan simpanan
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -66,7 +77,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="POST" class="space-y-5">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">ID Anggota</label>
-                <input type="number" name="id_anggota" id="id_anggota" required class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <?php if ($isAdmin): ?>
+                    <input type="number" name="id_anggota" id="id_anggota" required class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <?php else: ?>
+                    <input type="number" name="id_anggota" id="id_anggota" value="<?= $userId; ?>" readonly class="w-full p-2 border border-gray-300 rounded bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="hidden" name="id_anggota" value="<?= $userId; ?>">
+                <?php endif; ?>
                 <div id="nama_anggota" class="mt-1 font-semibold text-blue-600"></div>
             </div>
             <div>
@@ -97,10 +113,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode($anggota_data);
         ?>;
 
-        document.getElementById('id_anggota').addEventListener('input', function () {
-            const id = this.value;
-            document.getElementById('nama_anggota').innerText = anggotaData[id] ? 'Nama: ' + anggotaData[id] : '';
-        });
+        <?php if ($isAdmin): ?>
+            document.getElementById('id_anggota').addEventListener('input', function () {
+                const id = this.value;
+                document.getElementById('nama_anggota').innerText = anggotaData[id] ? 'Nama: ' + anggotaData[id] : '';
+            });
+        <?php else: ?>
+            // User biasa, tampilkan nama anggota yang login
+            document.getElementById('nama_anggota').innerText = anggotaData[<?= $userId; ?>] ? 'Nama: ' + anggotaData[<?= $userId; ?>] : '';
+        <?php endif; ?>
     </script>
 </body>
 </html>

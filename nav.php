@@ -89,11 +89,14 @@ $foto_ada = $foto && file_exists($foto_path);
     <div class="hidden md:flex md:flex-shrink-0">
       <div class="flex flex-col w-64 bg-indigo-800 text-white">
         <!-- Logo -->
-       <div class="flex items-center justify-center h-16 px-4 bg-indigo-900">
+       <div class="flex items-center justify-center h-16 px-4 bg-indigo-800">
        
         <img src="./11logo.png" alt="Logo PMA" class=" h-12 w-auto mr-3">
         <span class="text-xl font-bold">KSPPS PMA</span>
       </div>
+
+        <!-- Garis Pemisah -->
+        <div class="border-t border-indigo-700 mx-4 my-2"></div>
 
         <!-- Menu Navigasi -->
         <nav class="flex-1 px-4 py-4 overflow-y-auto nav-scroll" x-data="{ activeMenu: null }">
@@ -203,7 +206,7 @@ $foto_ada = $foto && file_exists($foto_path);
                         <i class="fas fa-calendar-day mr-2"></i>
                         Laporan Harian
                     </a>
-                    <a href="#" onclick="navigateTo('./laporan/report_bulanan.php')" class="flex items-center px-3 py-2 text-sm text-indigo-100 hover:bg-indigo-600 rounded">
+                    <a href="#" onclick="navigateTo('./laporan/admin.php')" class="flex items-center px-3 py-2 text-sm text-indigo-100 hover:bg-indigo-600 rounded">
                         <i class="fas fa-calendar-month mr-2"></i>
                         Laporan Bulanan
                     </a>
@@ -226,6 +229,10 @@ $foto_ada = $foto && file_exists($foto_path);
               <a href="#" onclick="navigateTo('./users/list.php')" class="flex items-center px-3 py-2 text-sm text-indigo-100 hover:bg-indigo-600 rounded">
                 <i class="fas fa-list mr-2"></i>
                 Daftar User
+              </a>
+               <a href="#" onclick="navigateTo('./users/informasi.php')" class="flex items-center px-3 py-2 text-sm text-indigo-100 hover:bg-indigo-600 rounded">
+                <i class="fas fa-list mr-2"></i>
+                data tabungan
               </a>
             </div>
           </div>
@@ -501,9 +508,23 @@ $foto_ada = $foto && file_exists($foto_path);
 
     // --- NAVIGATION ---
     function navigateTo(url) {
-      document.getElementById("konten-frame").src = url;
-      if (window.innerWidth < 768) {
-        closeMobileSidebar();
+      console.log('Navigasi ke:', url); // Debug log
+      const frame = document.getElementById("konten-frame");
+      if (frame) {
+        // Hapus src terlebih dahulu untuk memastikan reload
+        frame.src = "about:blank";
+        // Beri sedikit delay sebelum mengatur src baru
+        setTimeout(() => {
+          frame.src = url;
+        }, 100);
+        
+        if (window.innerWidth < 768) {
+          closeMobileSidebar();
+        }
+      } else {
+        console.error('Frame dengan ID "konten-frame" tidak ditemukan');
+        // Jika frame tidak ditemukan, coba buka di tab baru
+        window.open(url, '_blank');
       }
     }
 
@@ -597,12 +618,33 @@ $foto_ada = $foto && file_exists($foto_path);
       const link = document.createElement("a");
       link.href = "#";
       link.className = "block px-4 py-3 hover:bg-gray-50";
+      
       // Tambahkan event handler klik
       // Ambil ID yang benar dari notifikasi
-      const notifId = item.id_simpanan || item.id_penarikan || item.id_pinjaman || item.id_angsuran || item.id;
+      let notifId;
+      switch(parseInt(item.versi)) {
+        case 1:
+          notifId = item.id;
+          break;
+        case 2:
+          notifId = item.id_pinjaman;
+          break;
+        case 3:
+          notifId = item.id_penarikan;
+          break;
+        case 4:
+          notifId = item.id_angsuran;
+          break;
+        default:
+          notifId = item.id;
+      }
+      
+      console.log('Notifikasi item:', item);
+      console.log('Notifikasi ID:', notifId);
 
       link.onclick = (e) => {
         e.preventDefault();
+        console.log('Notifikasi diklik:', item);
         // Hanya update status jika belum dibaca
         if (item.status === 'belum') {
             updateNotificationStatus(notifId, () => redirectBasedOnNotification(item));
@@ -692,24 +734,35 @@ $foto_ada = $foto && file_exists($foto_path);
     function redirectBasedOnNotification(notif) {
       let url = './home/home.php';
       let id_transaksi;
-      switch(notif.versi) {
-        case '1':
-          id_transaksi = notif.id_simpanan || notif.id;
-          url = `./laporan/slip.php?jenis=simpanan&id=${id_transaksi}`;
+      
+      console.log('Notifikasi diterima:', notif); // Debug log
+      
+      switch(parseInt(notif.versi)) {
+        case 1:
+          id_transaksi = notif.id;
+          url = `./pesan/slip.php?versi=1&id=${id_transaksi}`;
           break;
-        case '2':
-          id_transaksi = notif.id_pinjaman || notif.id;
-          url = `./laporan/slip.php?jenis=pinjaman&id=${id_transaksi}`;
+        case 2:
+          id_transaksi = notif.id_pinjaman;
+          url = `./pesan/slip.php?versi=2&id=${id_transaksi}`;
           break;
-        case '3':
-          id_transaksi = notif.id_penarikan || notif.id;
-          url = `./laporan/slip.php?jenis=tarik&id=${id_transaksi}`;
+        case 3:
+          id_transaksi = notif.id_penarikan;
+          url = `./pesan/slip.php?versi=3&id=${id_transaksi}`;
           break;
-        case '4':
-          id_transaksi = notif.id_angsuran || notif.id;
-          url = `./laporan/slip.php?jenis=angsuran&id=${id_transaksi}`;
+        case 4:
+          id_transaksi = notif.id_angsuran;
+          url = `./pesan/slip.php?versi=4&id=${id_transaksi}`;
           break;
+        default:
+          console.error('Versi notifikasi tidak dikenali:', notif.versi);
+          return;
       }
+      
+      console.log('Mengarahkan ke:', url); // Debug log
+      console.log('ID transaksi:', id_transaksi); // Debug log
+      
+      // Hanya buka di iframe, tidak di tab baru
       navigateTo(url);
       closeAllDropdowns();
     }

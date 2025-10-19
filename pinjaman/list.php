@@ -1,5 +1,10 @@
 <?php
 include '../config.php';
+
+// Cek session dan ambil role serta id_anggota
+session_start();
+$role = isset($_SESSION['role']) ? $_SESSION['role'] : '';
+$id_anggota = isset($_SESSION['id_anggota']) ? $_SESSION['id_anggota'] : '';
 // --- PESAN ---
 $pesan = '';
 if (isset($_GET['pesan'])) {
@@ -88,6 +93,11 @@ if ($search_status !== '') {
 }
 
 $whereClause = count($searchConditions) > 0 ? 'WHERE ' . implode(' AND ', $searchConditions) : '';
+
+// Filter berdasarkan role
+if ($role === 'user' && $id_anggota !== '') {
+    $whereClause .= ($whereClause === '' ? 'WHERE' : ' AND') . " p.id_anggota = '$id_anggota'";
+}
 
 // --- DATA FETCHING ---
 // Total count for pagination
@@ -186,6 +196,11 @@ if ($row_enum = mysqli_fetch_assoc($res_enum)) {
                 <a href="list.php" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg flex-grow text-center">
                     Reset
                 </a>
+                <?php if ($role === 'admin'): ?>
+                <a href="transaksi_pinjaman.php" class="bg-green-500 text-white px-4 py-2 rounded-lg flex-grow text-center">
+                    + Tambah
+                </a>
+                <?php endif; ?>
             </div>
         </div>
     </form>
@@ -235,10 +250,12 @@ if ($row_enum = mysqli_fetch_assoc($res_enum)) {
                                 </span>
                             </td>
                             <td class="px-3 py-2 mobile-p-2 whitespace-nowrap">
+                                <?php if ($role === 'admin'): ?>
                                 <button onclick='openUpdatePopup(<?= json_encode($row) ?>)'
                                         class="text-blue-500 hover:underline mobile-text-sm">Edit</button> |
                                 <button onclick="confirmDelete(<?= $row['id_pinjaman']; ?>)"
                                         class="text-red-500 hover:underline mobile-text-sm">Hapus</button> |
+                                <?php endif; ?>
                                 <a href="../laporan/slip.php?jenis=pinjaman&id=<?= $row['id_pinjaman'] ?>" target="_blank" class="text-blue-500 hover:underline mobile-text-sm">Print</a>
                             </td>
                         </tr>

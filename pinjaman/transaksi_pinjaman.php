@@ -1,5 +1,17 @@
 <?php
+session_start();
 include '../config.php';
+
+// Cek apakah user sudah login
+if (!isset($_SESSION['id_anggota']) || !isset($_SESSION['role'])) {
+    header("Location: ../login/login.php");
+    exit();
+}
+
+// Dapatkan data session
+$id_anggota_session = $_SESSION['id_anggota'];
+$role_user = $_SESSION['role'];
+$nama_user = $_SESSION['nama'];
 
 // Handle AJAX request to get nama anggota
 if (isset($_GET['get_nama']) && isset($_GET['id'])) {
@@ -15,14 +27,29 @@ $produk_result = mysqli_query($conn, "SELECT id, nama_produk FROM produk WHERE k
 
 // Simpan data pinjaman
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id_anggota = $_POST['id_anggota'];
-    $id_produk = $_POST['id_produk'];
+    // Jika role adalah user, gunakan id_anggota dari session
+    // Jika role bukan user, gunakan id_anggota dari input form
+    if ($role_user === 'user') {
+        $id_anggota = $id_anggota_session;
+        // Validasi bahwa produk pinjaman tersedia
+        $id_produk = $_POST['id_produk'];
+        $cek_produk = mysqli_query($conn, "SELECT id FROM produk WHERE id = $id_produk AND kategori = 'PEMBIAYAAN'");
+        if (mysqli_num_rows($cek_produk) === 0) {
+            $pesan = "Produk pinjaman tidak tersedia.";
+            header("Location: list.php?pesan=" . urlencode($pesan));
+            exit();
+        }
+    } else {
+        $id_anggota = $_POST['id_anggota'];
+        $id_produk = $_POST['id_produk'];
+    }
+    
     $jumlah     = preg_replace('/\D/', '', $_POST['jumlah']); // Hapus titik/karakter
     $tenor      = intval($_POST['tenor']);
     $tanggal    = date('Y-m-d');
 
     if ($jumlah > 0 && $tenor > 0) {
-        $query = "INSERT INTO pinjaman (id_anggota, id_produk, tanggal_pengajuan, jumlah, tenor, status) 
+        $query = "INSERT INTO pinjaman (id_anggota, id_produk, tanggal_pengajuan, jumlah, tenor, status)
                   VALUES ('$id_anggota', '$id_produk', '$tanggal', '$jumlah', '$tenor', 'pengajuan')";
         $pesan = mysqli_query($conn, $query) ? "Berhasil disimpan." : "Gagal menyimpan.";
 
@@ -64,21 +91,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         const namaSpan = document.getElementById("nama_anggota");
         const jumlahInput = document.getElementById("jumlah");
 
-        idInput.addEventListener("change", function () {
-            const id = idInput.value;
-            if (id !== "") {
-                fetch("?get_nama=1&id=" + id)
-                    .then(response => response.text())
-                    .then(data => {
-                        namaSpan.textContent = data || "- Tidak ditemukan";
-                    })
-                    .catch(() => {
-                        namaSpan.textContent = "- Gagal mengambil data";
-                    });
-            } else {
-                namaSpan.textContent = "-";
-            }
-        });
+        // Jika role adalah user, disable input id_anggota
+        <?php if ($role_user === 'user'): ?>
+            idInput.disabled = true;
+        <?php else: ?>
+            idInput.addEventListener("input", function () {
+                const id = idInput.value;
+                if (id !== "") {
+                    fetch("?get_nama=1&id=" + id)
+                        .then(response => response.text())
+                        .then(data => {
+                            namaSpan.textContent = data || "- Tidak ditemukan";
+                        })
+                        .catch(() => {
+                            namaSpan.textContent = "- Gagal mengambil data";
+                        });
+                } else {
+                    namaSpan.textContent = "-";
+                }
+            });
+        <?php endif; ?>
 
         jumlahInput.addEventListener("input", function (e) {
             let value = e.target.value.replace(/\D/g, "");
@@ -101,13 +133,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="POST" class="space-y-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700">ID Anggota:</label>
-                <input type="number" name="id_anggota" id="id_anggota" required
-                    class="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                <?php if ($role_user === 'user'): ?>
+                    <input type="number" name="id_anggota" id="id_anggota" value="<?php echo $id_anggota_session; ?>" readonly
+                        class="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 shadow-sm"/>
+                    <input type="hidden" name="id_anggota" value="<?php echo $id_anggota_session; ?>">
+                <?php else: ?>
+                    <input type="number" name="id_anggota" id="id_anggota" required
+                        class="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                <?php endif; ?>
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700">Nama Anggota:</label>
-                <span id="nama_anggota" class="mt-1 block text-gray-800 font-semibold">-</span>
+                <span id="nama_anggota" class="mt-1 block text-gray-800 font-semibold"><?php echo $role_user === 'user' ? $nama_user : '-'; ?></span>
             </div>
 
             <div>

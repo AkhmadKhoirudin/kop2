@@ -1,6 +1,11 @@
 <?php
 include '../config.php';
 
+// Cek session dan ambil role serta id_anggota
+session_start();
+$role = isset($_SESSION['role']) ? $_SESSION['role'] : '';
+$id_anggota = isset($_SESSION['id_anggota']) ? $_SESSION['id_anggota'] : '';
+
 // Handle delete action
 if (isset($_GET['delete_id']) && is_numeric($_GET['delete_id'])) {
     $id = (int)$_GET['delete_id'];
@@ -41,6 +46,11 @@ if ($search_tanggal !== '') {
 }
 
 $whereClause = count($searchConditions) > 0 ? 'WHERE ' . implode(' AND ', $searchConditions) : '';
+
+// Filter berdasarkan role
+if ($role === 'user' && $id_anggota !== '') {
+    $whereClause .= ($whereClause === '' ? 'WHERE' : ' AND') . " simpanan.id_anggota = '$id_anggota'";
+}
 
 // Buat URL parameter untuk mempertahankan state
 $urlParams = http_build_query(array_filter([
@@ -116,7 +126,9 @@ while ($row = mysqli_fetch_assoc($produk_query)) {
         <!-- Header -->
         <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
             <h3 class="text-xl md:text-2xl font-bold text-gray-700">Daftar Simpanan</h3>
+            <?php if ($role === 'admin'): ?>
             <a href="transaksi_simpanan.php" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow">+ Tambah Simpanan</a>
+            <?php endif; ?>
         </div>
 
         <!-- Search Form -->
@@ -176,8 +188,10 @@ while ($row = mysqli_fetch_assoc($produk_query)) {
                                 <td class="px-3 py-2 mobile-p-2 whitespace-nowrap"><?= htmlspecialchars($row['tanggal']) ?></td>
                                 <td class="px-3 py-2 text-right mobile-p-2 whitespace-nowrap">Rp <?= number_format($row['jumlah'], 0, ',', '.') ?></td>
                                 <td class="px-3 py-2 text-center mobile-p-2 whitespace-nowrap">
+                                    <?php if ($role === 'admin'): ?>
                                     <button onclick="openUpdatePopup(<?= $row['id_simpanan'] ?>, '<?= $row['jumlah'] ?>', <?= $row['id_prodak'] ?>)" class="text-blue-500 hover:underline mobile-text-sm">Edit</button> |
                                     <button onclick="confirmDelete(<?= $row['id_simpanan'] ?>)" class="text-red-500 hover:underline mobile-text-sm">Hapus</button> |
+                                    <?php endif; ?>
                                     <a href="../laporan/slip.php?jenis=simpanan&id=<?= $row['id_simpanan'] ?>" target="_blank" class="text-blue-500 hover:underline mobile-text-sm">Print</a>
                                 </td>
                             </tr>

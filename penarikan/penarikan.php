@@ -1,12 +1,29 @@
 <?php
+session_start();
 include '../config.php';
 
 $pesan = '';
 $saldo_list = [];
 
+// Cek apakah user sudah login
+if (!isset($_SESSION['id_anggota']) || !isset($_SESSION['role'])) {
+    header("Location: ../login/login.php");
+    exit();
+}
+
+// Tentukan apakah user adalah admin atau user biasa
+$isAdmin = ($_SESSION['role'] === 'admin');
+$currentUserId = $_SESSION['id_anggota'];
+
+// Jika user biasa, set id_anggota ke session user dan nonaktifkan perubahan
+if (!$isAdmin) {
+    $id_anggota = $currentUserId;
+} else {
+    $id_anggota = isset($_POST['id_anggota']) ? $_POST['id_anggota'] : '';
+}
+
 // Proses penarikan
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id_anggota = $_POST['id_anggota'];
     $id_produk  = $_POST['id_produk'];
     $jumlah_raw = $_POST['jumlah'];
     $jumlah     = preg_replace('/[^\d]/', '', $jumlah_raw);
@@ -117,6 +134,21 @@ if (isset($_GET['get_jenis']) && isset($_GET['id_anggota'])) {
                         });
                     });
             });
+
+            // Jika user bukan admin, set nilai ID anggota dan nonaktifkan perubahan
+            <?php if (!$isAdmin): ?>
+                document.addEventListener("DOMContentLoaded", function() {
+                    const idAnggotaInput = document.getElementById("id_anggota");
+                    if (idAnggotaInput) {
+                        idAnggotaInput.value = "<?php echo htmlspecialchars($id_anggota); ?>";
+                        idAnggotaInput.readOnly = true;
+                        idAnggotaInput.addEventListener("input", function(e) {
+                            e.preventDefault();
+                            this.value = "<?php echo htmlspecialchars($id_anggota); ?>";
+                        });
+                    }
+                });
+            <?php endif; ?>
         });
     </script>
 </head>
@@ -130,8 +162,14 @@ if (isset($_GET['get_jenis']) && isset($_GET['id_anggota'])) {
     <form method="POST" class="space-y-4">
         <div>
             <label for="id_anggota" class="block text-sm font-medium text-gray-700">ID Anggota:</label>
-            <input type="number" name="id_anggota" id="id_anggota" type="text" required
-                    class="mt-1 block w-full border-b border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-xl">
+            <?php if ($isAdmin): ?>
+                <input type="number" name="id_anggota" id="id_anggota" value="<?php echo htmlspecialchars($id_anggota); ?>" required
+                       class="mt-1 block w-full border-b border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-xl">
+            <?php else: ?>
+                <input type="text" name="id_anggota" id="id_anggota" value="<?php echo htmlspecialchars($id_anggota); ?>" readonly
+                       class="mt-1 block w-full border-b border-gray-300 bg-gray-100 shadow-sm sm:text-xl">
+                <input type="hidden" name="id_anggota" value="<?php echo htmlspecialchars($id_anggota); ?>">
+            <?php endif; ?>
         </div>
 
         <div>

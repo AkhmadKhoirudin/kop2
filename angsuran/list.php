@@ -1,5 +1,19 @@
 <?php
+session_start();
 include '../config.php';
+
+// Dapatkan informasi user dari session
+$current_role = isset($_SESSION['role']) ? $_SESSION['role'] : '';
+$current_id_anggota = isset($_SESSION['id_anggota']) ? $_SESSION['id_anggota'] : '';
+
+// Jika user bukan admin, batasi akses hanya untuk data miliknya sendiri
+if ($current_role !== 'admin') {
+    // Jika tidak ada session, redirect ke login
+    if (empty($current_id_anggota)) {
+        header("Location: ../login/login.php");
+        exit();
+    }
+}
 
 // Handle pagination
 $items_per_page = 50;
@@ -31,6 +45,15 @@ if ($search_tanggal !== '') {
 }
 
 $whereClause = count($searchConditions) > 0 ? 'WHERE ' . implode(' AND ', $searchConditions) : '';
+
+// Tambahkan filter berdasarkan role
+if ($current_role !== 'admin' && !empty($current_id_anggota)) {
+    if (!empty($whereClause)) {
+        $whereClause .= ' AND p.id_anggota = ' . (int)$current_id_anggota;
+    } else {
+        $whereClause = 'WHERE p.id_anggota = ' . (int)$current_id_anggota;
+    }
+}
 
 // Fetch total count for pagination
 $total_query = mysqli_query($conn, "
@@ -171,7 +194,26 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
                             <td class="px-3 py-2 mobile-p-2 whitespace-nowrap"><?php echo $row['tanggal']; ?></td>
                             <td class="px-3 py-2 mobile-p-2 whitespace-nowrap">Rp <?php echo number_format($row['jumlah'], 0, ',', '.'); ?></td>
                             <td class="px-3 py-2 mobile-p-2">
-                                <span class="px-2 py-1 rounded-full text-xs <?php echo $row['status'] === 'Lunas' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'; ?>">
+                                <?php
+                                $status_class = '';
+                                $status_text_color = '';
+                                
+                                 if ($row['status'] === 'Lunas') {
+                                    $status_class = 'bg-green-100';
+                                    $status_text_color = 'text-green-600';
+                                    echo "<!-- DEBUG: Masuk kondisi HIJAU (Lunas) -->";
+                                } elseif ($row['status'] === 'sudah melakukan pembayaran') {
+                                    $status_class = 'bg-blue-100';
+                                    $status_text_color = 'text-blue-600';
+                                    echo "<!-- DEBUG: Masuk kondisi BIRU (Sudah Dibayar) -->";
+                                } else {
+                                    // Status 'belum melakukan pembayaran' atau status lainnya
+                                    $status_class = 'bg-red-100';
+                                    $status_text_color = 'text-red-600';
+                                    echo "<!-- DEBUG: Masuk kondisi MERAH (Belum Dibayar) -->";
+                                }
+                                ?>
+                                <span class="px-2 py-1 rounded-full text-xs <?php echo $status_class . ' ' . $status_text_color; ?>">
                                     <?php echo $row['status']; ?>
                                 </span>
                             </td>
@@ -245,10 +287,11 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
             </div>
             <div class="mb-4">
                 <label for="updateStatus" class="block text-sm font-medium text-gray-700">Status</label>
-                <select name="status" id="updateStatus" 
+                <select name="status" id="updateStatus"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
                     <option value="Lunas">Lunas</option>
-                    <option value="Belum Lunas">Belum Lunas</option>
+                    <option value="sudah melakukan pembayaran">sudah melakukan pembayaran</option>
+                    <option value="belum melakukan pembayaran">belum melakukan pembayaran</option>
                 </select>
             </div>
             <div class="flex justify-end gap-2">
@@ -293,8 +336,46 @@ function confirmDelete(id) {
     }
 }
 
-// Swiper Popup: show if URL has pesan=sukses
+// Format number input
+function formatNumber(input) {
+    let value = input.value.replace(/\D/g, "");
+    input.value = value !== "" ? new Intl.NumberFormat("id-ID").format(value) : "";
+}
+
+// Initialize number formatting
 document.addEventListener('DOMContentLoaded', function () {
+    // Format jumlah input in update popup
+    const jumlahInput = document.getElementById('updateJumlah');
+    if (jumlahInput) {
+        jumlahInput.addEventListener('input', function(e) {
+            formatNumber(this);
+        });
+    }
+    
+    // Handle update form submission
+    const updateForm = document.getElementById('updateForm');
+    if (updateForm) {
+        updateForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(this);
+            const id_angsuran = formData.get('id_angsuran');
+            const jumlah = formData.get('jumlah').replace(/\D/g, '');
+            const status = formData.get('status');
+            
+            // Validate
+            if (!id_angsuran || !jumlah || !status) {
+                alert('Semua field harus diisi!');
+                return;
+            }
+            
+            // Submit form
+            this.submit();
+        });
+    }
+    
+    // Swiper Popup: show if URL has pesan=sukses
     const params = new URLSearchParams(window.location.search);
     if (params.get('pesan') === 'sukses') {
         document.getElementById('swiperPopup').classList.remove('hidden');
@@ -303,6 +384,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     document.getElementById('closeSwiperPopup').addEventListener('click', function () {
         document.getElementById('swiperPopup').classList.add('hidden');
+    });
+    
+    // Close popup when clicking outside
+    document.getElementById('updatePopup').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeUpdatePopup();
+        }
     });
 });
 </script>

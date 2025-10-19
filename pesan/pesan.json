@@ -26,5 +26,136 @@
         "jumlah": 9000000,
         "tenor": 12,
         "status": "baca"
+    },
+    {
+        "versi": 1,
+        "id": 1301,
+        "id_anggota": "9",
+        "tanggal": "2025-09-29",
+        "jumlah": 90000,
+        "id_prodak": "18",
+        "status": "baca"
+    },
+    {
+        "versi": 2,
+        "id_pinjaman": 14741,
+        "id_anggota": "9",
+        "id_produk": "27",
+        "tanggal": "2025-09-29",
+        "jumlah": 19000000,
+        "tenor": 12,
+        "status": "baca"
+    },
+    {
+        "versi": 4,
+        "id_angsuran": 1,
+        "id_pinjaman": 13524,
+        "tanggal": "2025-09-30",
+        "jumlah": 1666667,
+        "status": "baca"
+    },
+    {
+        "versi": 3,
+        "id_penarikan": 15519,
+        "id_anggota": "9",
+        "id_produk": "16",
+        "tanggal": "2025-09-30",
+        "jumlah": 90000,
+        "status": "baca"
+    },
+    {
+        "versi": 1,
+        "id": 1302,
+        "id_anggota": "9",
+        "tanggal": "2025-09-30",
+        "jumlah": 120000,
+        "id_prodak": "22",
+        "status": "baca"
+    },
+    {
+        "versi": 2,
+        "id_pinjaman": 14742,
+        "id_anggota": "9",
+        "id_produk": "26",
+        "tanggal": "2025-10-04",
+        "jumlah": 9000000,
+        "tenor": 2,
+        "status": "belum"
+    },
+    {
+        "versi": 4,
+        "id_angsuran": 0,
+        "id_pinjaman": 14742,
+        "tanggal": "2025-10-04",
+        "jumlah": 4500000,
+        "status": "belum"
+    },
+    {
+        "versi": 4,
+        "id_angsuran": 0,
+        "id_pinjaman": 14741,
+        "tanggal": "2025-10-04",
+        "jumlah": 1583334,
+        "status": "belum"
+    },
+    {
+        "versi": 2,
+        "id_pinjaman": 17343,
+        "id_anggota": "19",
+        "id_produk": "27",
+        "tanggal": "2025-10-04",
+        "jumlah": 9000000,
+        "tenor": 12,
+        "status": "belum"
+    },
+    {
+        "versi": 4,
+        "id_angsuran": 0,
+        "id_pinjaman": 17343,
+        "tanggal": "2025-10-04",
+        "jumlah": 750000,
+        "status": "belum"
+    },
+    {
+        "versi": 2,
+        "id_pinjaman": 18644,
+        "id_anggota": "9",
+        "id_produk": "26",
+        "tanggal": "2025-10-05",
+        "jumlah": 1900000,
+        "tenor": 3,
+        "status": "belum"
+    },
+    {
+        "versi": 4,
+        "id_angsuran": 0,
+        "id_pinjaman": 18644,
+        "tanggal": "2025-10-05",
+        "jumlah": 633334,
+        "status": "sudah"
+    },
+    {
+        "versi": 4,
+        "id_angsuran": 0,
+        "id_pinjaman": 18644,
+        "tanggal": "2025-10-05",
+        "jumlah": 633334,
+        "status": "sudah"
+    },
+    {
+        "versi": 4,
+        "id_angsuran": 0,
+        "id_pinjaman": 18644,
+        "tanggal": "2025-10-05",
+        "jumlah": 600000,
+        "status": "sudah"
+    },
+    {
+        "versi": 4,
+        "id_angsuran": 0,
+        "id_pinjaman": 18644,
+        "tanggal": "2025-10-05",
+        "jumlah": 33332,
+        "status": "sudah"
     }
 ]
