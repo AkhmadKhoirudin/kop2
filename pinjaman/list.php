@@ -65,10 +65,10 @@ $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] :
 $offset = ($page - 1) * $items_per_page;
 
 // --- SORTING ---
-$sort_column = isset($_GET['sort']) ? $_GET['sort'] : 'tanggal_pengajuan';
+$sort_column = isset($_GET['sort']) ? $_GET['sort'] : 'id_pinjaman';
 $allowed_columns = ['id_pinjaman', 'nama', 'nama_produk', 'tanggal_pengajuan', 'jumlah', 'tenor', 'status'];
 if (!in_array($sort_column, $allowed_columns)) {
-    $sort_column = 'tanggal_pengajuan';
+    $sort_column = 'id_pinjaman';
 }
 $sort_order = isset($_GET['order']) && $_GET['order'] === 'asc' ? 'asc' : 'desc';
 

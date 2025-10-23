@@ -86,9 +86,7 @@ while ($anggota = mysqli_fetch_assoc($anggota_result)) {
                     <p class="text-gray-600">Data lengkap saldo, simpanan, pinjaman, angsuran, dan penarikan</p>
                 </div>
                 <div>
-                    <a href="list.php" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
-                        <i class="fas fa-arrow-left mr-2"></i>Kembali
-                    </a>
+         
                 </div>
             </div>
         </div>
@@ -199,9 +197,9 @@ while ($anggota = mysqli_fetch_assoc($anggota_result)) {
                                     Rp <?= number_format($anggota['total_angsuran'], 0, ',', '.') ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <a href="informasi.php?id=<?= $anggota['id_anggota'] ?>" class="text-blue-600 hover:text-blue-900">
+                                    <button onclick="showDetail(<?= $anggota['id_anggota'] ?>)" class="text-blue-600 hover:text-blue-900">
                                         <i class="fas fa-eye mr-1"></i>Detail
-                                    </a>
+                                    </button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

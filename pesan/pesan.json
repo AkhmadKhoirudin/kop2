@@ -157,5 +157,31 @@
         "tanggal": "2025-10-05",
         "jumlah": 33332,
         "status": "sudah"
+    },
+    {
+        "versi": 2,
+        "id_pinjaman": 19945,
+        "id_anggota": "10",
+        "id_produk": "26",
+        "tanggal": "2025-10-19",
+        "jumlah": 100000,
+        "tenor": 2,
+        "status": "belum"
+    },
+    {
+        "versi": 4,
+        "id_angsuran": 0,
+        "id_pinjaman": 19945,
+        "tanggal": "2025-10-19",
+        "jumlah": 50000,
+        "status": "sudah"
+    },
+    {
+        "versi": 4,
+        "id_angsuran": 0,
+        "id_pinjaman": 19945,
+        "tanggal": "2025-10-19",
+        "jumlah": 50000,
+        "status": "sudah"
     }
 ]
