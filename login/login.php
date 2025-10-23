@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="text-center mb-8">
     <!-- Logo kiri dan kanan -->
     <div class="flex justify-center items-center space-x-6">
-        <img src="../11logo.png" alt="Logo PMA" class="w-20 h-20">
+        <img src="../11logo.png" alt="Logo PMA" class="w-25 h-20">
         <img src="../koperasi_indonesia.jpg" alt="Logo Indonesia" class="w-20 h-20">
     </div>
 
